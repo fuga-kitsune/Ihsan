@@ -1,0 +1,113 @@
+import { getDatabase } from '../../../database/db';
+import { HabitItemUIModel, HabitCategory } from '../models/habit.model';
+import { getTodayDateString } from '../../../core/utils/date';
+
+
+export class HabitRepository {
+  async getHabitsForDate(dateKey: string): Promise<HabitItemUIModel[]> {
+    const db = await getDatabase();
+    const safeDate = String(dateKey || getTodayDateString());
+
+    const rows = await db.getAllAsync<{
+      id: string;
+      name: string;
+      category: string;
+      benefit: string;
+      tag: string;
+      sort_order: number;
+      completed: number | null;
+    }>(
+      `
+      SELECT 
+        h.id, 
+        h.name, 
+        h.category, 
+        h.benefit, 
+        h.tag, 
+        h.sort_order,
+        hl.completed
+      FROM habits h
+      LEFT JOIN habit_logs hl ON h.id = hl.habit_id AND hl.date_key = ?
+      ORDER BY h.sort_order ASC
+      `,
+      [safeDate]
+    );
+
+    return rows.map((row) => ({
+      id: row.id,
+      name: row.name,
+      category: row.category as HabitCategory,
+      benefit: row.benefit,
+      tag: row.tag,
+      isCompleted: row.completed === 1,
+    }));
+  }
+
+
+  async toggleHabitStatus(habitId: string, dateKey: string, currentlyCompleted: boolean): Promise<boolean> {
+    const db = await getDatabase();
+    if (currentlyCompleted) {
+      await db.runAsync('DELETE FROM habit_logs WHERE habit_id = ? AND date_key = ?', [habitId, dateKey]);
+      return false;
+    } else {
+      const logId = `${habitId}_${dateKey}`;
+      await db.runAsync(
+        'INSERT OR REPLACE INTO habit_logs (id, habit_id, date_key, completed) VALUES (?, ?, ?, 1)',
+        [logId, habitId, dateKey]
+      );
+      return true;
+    }
+  }
+
+  async calculateStreak(): Promise<number> {
+    const db = await getDatabase();
+    const rows = await db.getAllAsync<{ date_key: string; count: number }>(
+      `
+      SELECT date_key, COUNT(*) as count 
+      FROM habit_logs 
+      WHERE completed = 1 
+      GROUP BY date_key 
+      ORDER BY date_key DESC
+      `
+    );
+
+    const completedMap = new Map<string, number>();
+    rows.forEach((r) => completedMap.set(r.date_key, r.count));
+
+    let streak = 0;
+    const date = new Date();
+    while (true) {
+      const key = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}`;
+      const count = completedMap.get(key) || 0;
+      if (count >= 5) {
+        streak++;
+        date.setDate(date.getDate() - 1);
+      } else {
+        break;
+      }
+    }
+
+    return streak;
+  }
+
+  async addHabit(data: { name: string; category: string; benefit: string; tag: string }): Promise<void> {
+    const db = await getDatabase();
+    const id = `custom_${Date.now()}`;
+    const maxOrderRow = await db.getFirstAsync<{ max_order: number }>('SELECT MAX(sort_order) as max_order FROM habits');
+    const newOrder = (maxOrderRow?.max_order || 0) + 1;
+
+    await db.runAsync(
+      'INSERT INTO habits (id, name, category, benefit, tag, sort_order) VALUES (?, ?, ?, ?, ?, ?)',
+      [id, data.name, data.category, data.benefit || 'Spiritual Growth', data.tag || 'Custom', newOrder]
+    );
+  }
+
+  async deleteHabit(habitId: string): Promise<void> {
+    const db = await getDatabase();
+    await db.runAsync('DELETE FROM habit_logs WHERE habit_id = ?', [habitId]);
+    await db.runAsync('DELETE FROM habits WHERE id = ?', [habitId]);
+  }
+}
+
+export const habitRepository = new HabitRepository();
+

@@ -1,0 +1,29 @@
+{
+  "expo": {
+    "name": "Ihsan",
+    "slug": "ihsan",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "icon": "./assets/icon.png",
+    "userInterfaceStyle": "light",
+    "splash": {
+      "image": "./assets/splash-icon.png",
+      "resizeMode": "contain",
+      "backgroundColor": "#FAFAF9"
+    },
+    "ios": {
+      "supportsTablet": true,
+      "bundleIdentifier": "com.ihsan.app"
+    },
+    "android": {
+      "package": "com.ihsan.app",
+      "adaptiveIcon": {
+        "foregroundImage": "./assets/adaptive-icon.png",
+        "backgroundColor": "#FAFAF9"
+      }
+    },
+    "plugins": [
+      "expo-sqlite"
+    ]
+  }
+}

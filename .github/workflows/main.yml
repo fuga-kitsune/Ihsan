@@ -1,0 +1,58 @@
+name: Build Android APK and AAB Bundle
+
+on:
+  push:
+    branches: [ main ]
+  workflow_dispatch:
+
+jobs:
+  build:
+    name: Build Android Release
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: 📥 Checkout repository
+        uses: actions/checkout@v4
+
+      - name: ⚙️ Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: 'npm'
+
+      - name: ⚙️ Setup Java (JDK 17)
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'temurin'
+          java-version: '17'
+
+      - name: ⚙️ Setup Android SDK
+        uses: android-actions/setup-android@v3
+
+      - name: 📦 Install dependencies
+        run: npm install
+
+      - name: 🛠️ Prebuild Android Native Files
+        run: npx expo prebuild --platform android --clean
+
+      - name: 🏗️ Build Google Play AAB Bundle
+        working-directory: android
+        run: ./gradlew bundleRelease --no-daemon
+
+      - name: 🏗️ Build Direct Install APK
+        working-directory: android
+        run: ./gradlew assembleRelease --no-daemon
+
+      - name: 📤 Upload Google Play AAB Bundle (.aab)
+        uses: actions/upload-artifact@v4
+        with:
+          name: Ihsan-v1.0.0-PlayStore-AAB
+          path: android/app/build/outputs/bundle/release/*.aab
+          retention-days: 30
+
+      - name: 📤 Upload Direct Install APK (.apk)
+        uses: actions/upload-artifact@v4
+        with:
+          name: Ihsan-v1.0.0-Release-APK
+          path: android/app/build/outputs/apk/release/*.apk
+          retention-days: 30
