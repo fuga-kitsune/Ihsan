@@ -13,10 +13,10 @@
     },
     "ios": {
       "supportsTablet": true,
-      "bundleIdentifier": "com.ihsan.app"
+      "bundleIdentifier": "com.musha.ihsan"
     },
     "android": {
-      "package": "com.ihsan.app",
+      "package": "com.musha.ihsan",
       "adaptiveIcon": {
         "foregroundImage": "./assets/adaptive-icon.png",
         "backgroundColor": "#FAFAF9"
