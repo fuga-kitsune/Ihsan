@@ -1,0 +1,14 @@
+{
+    "cli": {
+        "version": ">= 23.2.0"
+    },
+    "build": {
+        "local-apk": {
+            "developmentClient": false,
+            "distribution": "internal",
+            "android": {
+                "buildType": "apk"
+            }
+        }
+    }
+}

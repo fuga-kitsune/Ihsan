@@ -1,0 +1,41 @@
+{
+  "expo": {
+    "name": "ihsan",
+    "slug": "ihsan",
+    "version": "1.0.1",
+    "orientation": "portrait",
+    "icon": "./assets/icon.png",
+    "scheme": "ihsan",
+    "userInterfaceStyle": "automatic",
+    "android": {
+      "package": "com.musha.ihsan",
+      "adaptiveIcon": {
+        "backgroundColor": "#FAFAF9",
+        "foregroundImage": "./assets/adaptive-icon.png"
+      },
+      "predictiveBackGestureEnabled": false,
+      "versionCode": 2
+    },
+    "plugins": [
+      "expo-router",
+      [
+        "expo-splash-screen",
+        {
+          "backgroundColor": "#208AEF",
+          "image": "./assets/splash-icon.png",
+          "imageWidth": 76
+        }
+      ]
+    ],
+    "experiments": {
+      "typedRoutes": true,
+      "reactCompiler": true
+    },
+    "extra": {
+      "router": {},
+      "eas": {
+        "projectId": "359f9be2-7803-4861-ac34-11f0709ebed8"
+      }
+    }
+  }
+}

@@ -1,0 +1,76 @@
+import * as SQLite from 'expo-sqlite';
+import { CREATE_TABLES_SQL } from './schema';
+
+let dbInstance: SQLite.SQLiteDatabase | null = null;
+
+export async function getDatabase(): Promise<SQLite.SQLiteDatabase> {
+  if (!dbInstance) {
+    dbInstance = await SQLite.openDatabaseAsync('muhasabah_app.db');
+    await dbInstance.execAsync(CREATE_TABLES_SQL);
+    await seedInitialData(dbInstance);
+  }
+  return dbInstance;
+}
+
+async function seedInitialData(db: SQLite.SQLiteDatabase) {
+  const existing = await db.getFirstAsync<{ count: number }>('SELECT COUNT(*) as count FROM habits');
+  if (!existing || existing.count === 0) {
+    const defaultHabits = [
+      { id: 'fajr', name: 'Fajr Prayer', category: 'prayers', benefit: 'Divine light & protection for the day', tag: 'Fard', order: 1 },
+      { id: 'dhuhr', name: 'Dhuhr Prayer', category: 'prayers', benefit: 'Midday spiritual remembrance', tag: 'Fard', order: 2 },
+      { id: 'asr', name: 'Asr Prayer', category: 'prayers', benefit: 'Guardian of continuous good deeds', tag: 'Fard', order: 3 },
+      { id: 'maghrib', name: 'Maghrib Prayer', category: 'prayers', benefit: 'Evening reflection & gratitude', tag: 'Fard', order: 4 },
+      { id: 'isha', name: 'Isha Prayer', category: 'prayers', benefit: 'Night tranquility & protection', tag: 'Fard', order: 5 },
+      { id: 'quran', name: 'Daily Quran (even 1 page)', category: 'quran', benefit: 'Peace of the heart & spiritual guidance', tag: 'Deed', order: 6 },
+      { id: 'adhkar', name: 'Morning & Evening Adhkar', category: 'dhikr', benefit: 'Spiritual shield and serenity', tag: 'Sunnah', order: 7 },
+      { id: 'istighfar', name: 'Istighfar (100x)', category: 'dhikr', benefit: 'Opens doors of relief & barakah', tag: 'Dhikr', order: 8 },
+      { id: 'tawakkul_dua', name: 'Morning Tawakkul Affirmation', category: 'deeds', benefit: 'Placing full trust in Allah’s plan', tag: 'Tawakkul', order: 9 },
+      { id: 'sadaqah', name: 'Daily Act of Sadaqah / Kindness', category: 'deeds', benefit: 'Purification of soul & continuous reward', tag: 'Charity', order: 10 },
+    ];
+
+    for (const h of defaultHabits) {
+      await db.runAsync(
+        'INSERT OR IGNORE INTO habits (id, name, category, benefit, tag, sort_order) VALUES (?, ?, ?, ?, ?, ?)',
+        [h.id, h.name, h.category, h.benefit, h.tag, h.order]
+      );
+    }
+
+    const defaultWisdoms = [
+      {
+        id: 'w1',
+        title: 'Tawakkul (Reliance on Allah)',
+        arabic: 'وَمَن يَتَوَكَّلْ عَلَى اللَّهِ فَهُوَ حَسْبُهُ',
+        meaning: 'And whoever relies upon Allah – then He is sufficient for him.',
+        source: 'Surah At-Talaq (65:3)'
+      },
+      {
+        id: 'w2',
+        title: 'Constancy in Good Deeds',
+        arabic: 'أَحَبُّ الأَعْمَالِ إِلَى اللَّهِ أَدْوَمُهَا وَإِنْ قَلَّ',
+        meaning: 'The most beloved of deeds to Allah are those that are most consistent, even if they are small.',
+        source: 'Sahih al-Bukhari 6464'
+      },
+      {
+        id: 'w3',
+        title: 'Relief with Patience (Sabr)',
+        arabic: 'فَإِنَّ مَعَ الْعُسْرِ يُسْرًا',
+        meaning: 'For indeed, with hardship [will be] ease.',
+        source: 'Surah Ash-Sharh (94:5)'
+      },
+      {
+        id: 'w4',
+        title: 'Gratitude & Growth (Shukr)',
+        arabic: 'لَئِن شَكَرْتُمْ لَأَزِيدَنَّكُمْ',
+        meaning: 'If you are grateful, I will surely increase you [in favor].',
+        source: 'Surah Ibrahim (14:7)'
+      }
+    ];
+
+    for (const w of defaultWisdoms) {
+      await db.runAsync(
+        'INSERT OR IGNORE INTO wisdoms (id, title, arabic, meaning, source) VALUES (?, ?, ?, ?, ?)',
+        [w.id, w.title, w.arabic, w.meaning, w.source]
+      );
+    }
+  }
+}
