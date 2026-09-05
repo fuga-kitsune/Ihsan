@@ -14,6 +14,7 @@ if (Platform.OS === 'android' && UIManager.setLayoutAnimationEnabledExperimental
 export const HabitList: React.FC = () => {
   const habits = useTrackerStore((state) => state.habits);
   const activeCategory = useTrackerStore((state) => state.activeCategory);
+  const selectedDate = useTrackerStore((state) => state.selectedDate);
   const [modalVisible, setModalVisible] = useState(false);
   const [selectedHabitToDelete, setSelectedHabitToDelete] = useState<HabitItemUIModel | null>(null);
 
@@ -34,19 +35,22 @@ export const HabitList: React.FC = () => {
   // Maintain local displayed list pre-sorted
   const [displayHabits, setDisplayHabits] = useState<HabitItemUIModel[]>(() => sortHabits(habits));
   const reorderTimerRef = React.useRef<ReturnType<typeof setTimeout> | null>(null);
+  const prevDateRef = React.useRef<string>(selectedDate);
 
   React.useEffect(() => {
     if (reorderTimerRef.current) {
       clearTimeout(reorderTimerRef.current);
     }
 
-    // Check if the update is just a completion toggle on the same set of habits
-    const isSameSet =
-      displayHabits.length === habits.length &&
-      displayHabits.every((d) => habits.some((h) => h.id === d.id));
+    // If date changed, immediately sort and replace without delay or animated jump
+    if (prevDateRef.current !== selectedDate) {
+      prevDateRef.current = selectedDate;
+      setDisplayHabits(sortHabits(habits));
+      return;
+    }
 
-    if (!isSameSet) {
-      // Screen loaded or date/tab switched: set properly sorted list immediately
+    // Check if habit count changed
+    if (displayHabits.length !== habits.length) {
       setDisplayHabits(sortHabits(habits));
       return;
     }
@@ -67,7 +71,7 @@ export const HabitList: React.FC = () => {
         clearTimeout(reorderTimerRef.current);
       }
     };
-  }, [habits]);
+  }, [habits, selectedDate]);
 
   const filteredHabits = displayHabits.filter((h) => {
     if (activeCategory === 'all') return true;
@@ -76,6 +80,14 @@ export const HabitList: React.FC = () => {
 
   const unlockedHabits = filteredHabits.filter((h) => !h.isLocked);
   const lockedHabits = filteredHabits.filter((h) => h.isLocked);
+
+  // Show only the immediately NEXT streak milestone as a blurred mystery teaser (not all locked items)
+  const nextRequiredStreak = lockedHabits.length > 0
+    ? Math.min(...lockedHabits.map((h) => h.requiredStreak ?? 999))
+    : null;
+  const nextMilestoneHabits = nextRequiredStreak !== null
+    ? lockedHabits.filter((h) => (h.requiredStreak ?? 0) === nextRequiredStreak).slice(0, 1)
+    : [];
 
   return (
     <View style={styles.container}>
@@ -96,15 +108,15 @@ export const HabitList: React.FC = () => {
         <Text style={styles.addBtnText}>+ Add a personal deed</Text>
       </TouchableOpacity>
 
-      {/* Upcoming Deeds to Unlock Section */}
-      {lockedHabits.length > 0 && (
+      {/* Glimpse / Teaser for the Next Streak Milestone (Blurred mystery teaser) */}
+      {nextMilestoneHabits.length > 0 && (
         <View style={styles.lockedSection}>
           <View style={styles.lockedHeader}>
-            <Text style={styles.lockedTitle}>UPCOMING DEEDS TO UNLOCK</Text>
-            <Text style={styles.lockedSub}>Grow your daily streak to reveal more spiritual habits</Text>
+            <Text style={styles.lockedTitle}>NEXT MILESTONE UNLOCK</Text>
+            <Text style={styles.lockedSub}>Keep your daily streak going to unlock the next spiritual deed</Text>
           </View>
 
-          {lockedHabits.map((habit) => (
+          {nextMilestoneHabits.map((habit) => (
             <HabitItem
               key={habit.id}
               habit={habit}

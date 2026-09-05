@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { View, Text, TextInput, TouchableOpacity, Modal, ScrollView, StyleSheet, Alert } from 'react-native';
+import { View, Text, TextInput, TouchableOpacity, Modal, ScrollView, StyleSheet } from 'react-native';
 import { NiyyahTimeframe } from '../models/niyyah.model';
 import { useNiyyahStore } from '../store/useNiyyahStore';
 import { THEME } from '../../../core/constants/theme';
@@ -59,7 +59,7 @@ export const SetNiyyahModal: React.FC<SetNiyyahModalProps> = ({
           <View style={styles.header}>
             <View>
               <Text style={styles.tag}>WEEKLY FOCUS ({activeWeeklyNiyyahs.length}/3 ACTIVE)</Text>
-              <Text style={styles.title}>Add a Weekly Goal</Text>
+              <Text style={styles.title}>Pick a Spiritual Goal</Text>
             </View>
             <TouchableOpacity onPress={onClose} hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}>
               <Text style={styles.closeText}>✕</Text>
@@ -170,30 +170,6 @@ const styles = StyleSheet.create({
     letterSpacing: 1.1,
     marginBottom: 8,
   },
-  timeframeRow: {
-    flexDirection: 'row',
-    gap: 8,
-    marginBottom: 16,
-  },
-  timeframePill: {
-    flex: 1,
-    paddingVertical: 12,
-    borderRadius: THEME.radius.md,
-    backgroundColor: THEME.colors.bgCard,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  timeframePillActive: {
-    backgroundColor: THEME.colors.primary,
-  },
-  timeframeText: {
-    fontSize: 13,
-    fontWeight: '600',
-    color: THEME.colors.textBody,
-  },
-  timeframeTextActive: {
-    color: '#FFFFFF',
-  },
   input: {
     backgroundColor: THEME.colors.bgCard,
     borderRadius: THEME.radius.md,
@@ -216,19 +192,6 @@ const styles = StyleSheet.create({
     color: '#FFFFFF',
     fontSize: 14,
     fontWeight: '600',
-  },
-  categoryContainer: {
-    gap: 16,
-    paddingBottom: 24,
-  },
-  sectionBlock: {
-    gap: 8,
-  },
-  sectionCatHeader: {
-    fontSize: 12,
-    fontWeight: '700',
-    color: THEME.colors.textMuted,
-    letterSpacing: 0.5,
   },
   ideaList: {
     gap: 8,

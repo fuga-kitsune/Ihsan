@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { View, Text, TouchableOpacity, ScrollView, StyleSheet } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useNiyyahStore } from '../store/useNiyyahStore';
+import { useTrackerStore } from '../../tracker/store/useTrackerStore';
 import { QuestCard } from '../components/QuestCard';
 import { SetNiyyahModal } from '../components/SetNiyyahModal';
 import { SalawatCounterModal } from '../components/SalawatCounterModal';
@@ -25,11 +26,36 @@ export const FocusHubScreen: React.FC = () => {
     loadNiyyahAndQuests();
   }, []);
 
-  const isFriday = new Date().getDay() === 5;
+  const today = new Date();
+  const dayOfWeek = today.getDay(); // 0=Sun, 1=Mon, 2=Tue, 3=Wed, 4=Thu, 5=Fri, 6=Sat
+  const isFriday = dayOfWeek === 5;
+  const isThursdayEveningOrFriday = dayOfWeek === 4 || dayOfWeek === 5;
+  const isMonOrThu = dayOfWeek === 1 || dayOfWeek === 4;
 
-  // Surah Al-Kahf quest item for Friday
+  // Surah Al-Kahf & Salawat quests
   const kahfQuest = quests.find((q) => q.id === 'quest_kahf');
   const salawatQuest = quests.find((q) => q.id === 'quest_salawat');
+  const fastingQuest = quests.find((q) => q.id === 'quest_fasting');
+
+  const currentStreak = useTrackerStore((state) => state.stats.streak);
+
+  // Load quests with current streak
+  useEffect(() => {
+    loadNiyyahAndQuests();
+  }, [currentStreak]);
+
+  // Quests (filter out Kahf as it is in the Event banner)
+  const allQuests = quests.filter((q) => q.id !== 'quest_kahf');
+  const unlockedQuests = allQuests.filter((q) => !q.isLocked);
+  const lockedQuests = allQuests.filter((q) => q.isLocked);
+
+  // Show only 1 upcoming milestone teaser to keep mystery
+  const nextRequiredStreak = lockedQuests.length > 0
+    ? Math.min(...lockedQuests.map((q) => q.requiredStreak ?? 999))
+    : null;
+  const nextMilestoneQuests = nextRequiredStreak !== null
+    ? lockedQuests.filter((q) => (q.requiredStreak ?? 0) === nextRequiredStreak).slice(0, 1)
+    : [];
 
   const activeCount = activeWeeklyNiyyahs.length;
   const canAddMore = activeCount < 3;
@@ -51,28 +77,85 @@ export const FocusHubScreen: React.FC = () => {
         </Text>
       </View>
 
-      {/* Friday Special Hot Card (ONLY shown on Fridays) */}
-      {isFriday && kahfQuest && (
-        <View style={[styles.hotFridayCard, kahfQuest.isCompleted && styles.hotFridayCardCompleted]}>
+      {/* DYNAMIC SUNNAH EVENTS BANNER */}
+      {isFriday && (
+        <View style={styles.eventGroup}>
+          {/* 1) Friday Hot Surah Kahf */}
+          {kahfQuest && (
+            <View style={[styles.hotFridayCard, kahfQuest.isCompleted && styles.hotFridayCardCompleted]}>
+              <View style={styles.hotFridayHeader}>
+                <View style={styles.hotBadge}>
+                  <Text style={styles.hotBadgeText}>HOT • FRIDAY SUNNAH</Text>
+                </View>
+                <TouchableOpacity
+                  onPress={() => kahfQuest.isCompleted ? resetQuest(kahfQuest.id) : incrementQuest(kahfQuest.id, 1)}
+                  style={[styles.hotActionBtn, kahfQuest.isCompleted && styles.hotActionBtnCompleted]}
+                  activeOpacity={0.7}
+                >
+                  <Text style={[styles.hotActionBtnText, kahfQuest.isCompleted && styles.hotActionBtnTextCompleted]}>
+                    {kahfQuest.isCompleted ? 'Finished ✓' : 'Mark as Read'}
+                  </Text>
+                </TouchableOpacity>
+              </View>
+              <Text style={[styles.hotTitle, kahfQuest.isCompleted && styles.hotTitleCompleted]}>
+                Read Surah Al-Kahf Today
+              </Text>
+              <Text style={styles.hotSub}>
+                "Whoever reads Surah al-Kahf on Friday, a light will shine for him between this Friday and the next."
+              </Text>
+            </View>
+          )}
+
+          {/* 2) Friday 1,000 Salawat Event */}
+          {salawatQuest && (
+            <View style={[styles.eventSalawatCard, salawatQuest.isCompleted && styles.eventSalawatCardCompleted]}>
+              <View style={styles.hotFridayHeader}>
+                <View style={styles.salawatBadge}>
+                  <Text style={styles.salawatBadgeText}>FRIDAY EVENT • 1,000 SALAWAT</Text>
+                </View>
+                <TouchableOpacity
+                  onPress={() => setSalawatModalVisible(true)}
+                  style={styles.salawatActionBtn}
+                  activeOpacity={0.8}
+                >
+                  <Text style={styles.salawatActionBtnText}>
+                    {salawatQuest.isCompleted ? 'Finished ✓' : `Open Counter (${salawatQuest.currentCount}/${salawatQuest.targetCount})`}
+                  </Text>
+                </TouchableOpacity>
+              </View>
+              <Text style={styles.salawatTitle}>
+                Send 1,000 Blessings Upon the Prophet ﷺ
+              </Text>
+              <Text style={styles.salawatSub}>
+                "Increase your sending of blessings upon me on the day of Friday..." — (Abu Dawud)
+              </Text>
+            </View>
+          )}
+        </View>
+      )}
+
+      {/* Monday & Thursday Fasting Event (when not Friday) */}
+      {!isFriday && isMonOrThu && fastingQuest && (
+        <View style={styles.monThuEventCard}>
           <View style={styles.hotFridayHeader}>
-            <View style={styles.hotBadge}>
-              <Text style={styles.hotBadgeText}>HOT • FRIDAY SUNNAH</Text>
+            <View style={styles.fastingBadge}>
+              <Text style={styles.fastingBadgeText}>SUNNAH EVENT • {dayOfWeek === 1 ? 'MONDAY' : 'THURSDAY'} FASTING</Text>
             </View>
             <TouchableOpacity
-              onPress={() => kahfQuest.isCompleted ? resetQuest(kahfQuest.id) : incrementQuest(kahfQuest.id, 1)}
-              style={[styles.hotActionBtn, kahfQuest.isCompleted && styles.hotActionBtnCompleted]}
+              onPress={() => fastingQuest.isCompleted ? resetQuest(fastingQuest.id) : incrementQuest(fastingQuest.id, 1)}
+              style={styles.fastingActionBtn}
               activeOpacity={0.7}
             >
-              <Text style={[styles.hotActionBtnText, kahfQuest.isCompleted && styles.hotActionBtnTextCompleted]}>
-                {kahfQuest.isCompleted ? 'Finished ✓' : 'Mark as Read'}
+              <Text style={styles.fastingActionBtnText}>
+                {fastingQuest.isCompleted ? 'Fasted ✓' : 'Log Fast'}
               </Text>
             </TouchableOpacity>
           </View>
-          <Text style={[styles.hotTitle, kahfQuest.isCompleted && styles.hotTitleCompleted]}>
-            Read Surah Al-Kahf Today
+          <Text style={styles.fastingTitle}>
+            Fast Today (Sunnah of the Prophet ﷺ)
           </Text>
-          <Text style={styles.hotSub}>
-            "Whoever reads Surah al-Kahf on Friday, a light will shine for him between this Friday and the next."
+          <Text style={styles.fastingSub}>
+            "Deeds are presented on Mondays and Thursdays, and I love for my deeds to be presented while fasting." — (Tirmidhi)
           </Text>
         </View>
       )}
@@ -81,7 +164,7 @@ export const FocusHubScreen: React.FC = () => {
       <View style={styles.focusContainer}>
         <View style={styles.sectionHeader}>
           <View style={styles.sectionTitleRow}>
-            <Text style={styles.sectionHeading}>ACTIVE GOALS</Text>
+            <Text style={styles.sectionHeading}>THIS WEEK'S GOALS</Text>
             <View style={styles.countBadge}>
               <Text style={styles.countBadgeText}>{activeCount}/3</Text>
             </View>
@@ -96,7 +179,7 @@ export const FocusHubScreen: React.FC = () => {
         {activeWeeklyNiyyahs.length === 0 ? (
           <TouchableOpacity style={styles.emptyPrompt} onPress={() => setModalVisible(true)} activeOpacity={0.7}>
             <Text style={styles.emptyTitle}>Pick Up to 3 Weekly Goals</Text>
-            <Text style={styles.emptySub}>Choose from Tahajjud, Birr al-Walidayn, Salawat, or write your own.</Text>
+            <Text style={styles.emptySub}>Choose from Starter, Sunnah, and Mastery goals as your streak grows.</Text>
           </TouchableOpacity>
         ) : (
           <View style={styles.goalsList}>
@@ -150,6 +233,40 @@ export const FocusHubScreen: React.FC = () => {
                 <Text style={styles.addSlotText}>+ Add Goal ({3 - activeCount} slot left)</Text>
               </TouchableOpacity>
             )}
+          </View>
+        )}
+      </View>
+
+      {/* Weekly Spiritual Habits Below Section */}
+      <View style={styles.habitsSection}>
+        <Text style={styles.habitsHeading}>WEEKLY SUNNAH HABITS</Text>
+        <View style={styles.questsList}>
+          {unlockedQuests.map((quest) => (
+            <QuestCard
+              key={quest.id}
+              quest={quest}
+              onOpenCounter={() => setSalawatModalVisible(true)}
+            />
+          ))}
+        </View>
+
+        {/* Locked upcoming quests teaser (1 milestone only, blurred) */}
+        {nextMilestoneQuests.length > 0 && (
+          <View style={styles.lockedQuestsSection}>
+            <View style={styles.lockedQuestsHeader}>
+              <Text style={styles.lockedQuestsTitle}>NEXT HABIT TO UNLOCK</Text>
+              <Text style={styles.lockedQuestsSub}>Grow your daily streak to reveal this spiritual habit</Text>
+            </View>
+
+            <View style={styles.questsList}>
+              {nextMilestoneQuests.map((quest) => (
+                <QuestCard
+                  key={quest.id}
+                  quest={quest}
+                  onOpenCounter={() => setSalawatModalVisible(true)}
+                />
+              ))}
+            </View>
           </View>
         )}
       </View>
@@ -402,6 +519,101 @@ const styles = StyleSheet.create({
     lineHeight: 16,
     fontStyle: 'italic',
   },
+  eventGroup: {
+    gap: 12,
+    marginBottom: 20,
+  },
+  eventSalawatCard: {
+    backgroundColor: '#FAF5EF',
+    borderRadius: THEME.radius.lg,
+    padding: 16,
+    borderWidth: 1,
+    borderColor: '#EFE8DE',
+    gap: 8,
+  },
+  eventSalawatCardCompleted: {
+    backgroundColor: '#F8FCF9',
+    borderColor: '#D7EFE2',
+  },
+  salawatBadge: {
+    backgroundColor: '#FEF3C7',
+    paddingHorizontal: 8,
+    paddingVertical: 3,
+    borderRadius: THEME.radius.full,
+  },
+  salawatBadgeText: {
+    fontSize: 10,
+    fontWeight: '700',
+    color: '#B45309',
+    letterSpacing: 0.8,
+  },
+  salawatActionBtn: {
+    backgroundColor: THEME.colors.primary,
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    borderRadius: THEME.radius.full,
+  },
+  salawatActionBtnText: {
+    color: '#FFFFFF',
+    fontSize: 12,
+    fontWeight: '600',
+  },
+  salawatTitle: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: THEME.colors.textHeading,
+    letterSpacing: -0.2,
+  },
+  salawatSub: {
+    fontSize: 12,
+    color: THEME.colors.textMuted,
+    lineHeight: 16,
+    fontStyle: 'italic',
+  },
+  monThuEventCard: {
+    backgroundColor: '#F0FDF4',
+    borderRadius: THEME.radius.lg,
+    padding: 16,
+    marginBottom: 20,
+    borderWidth: 1,
+    borderColor: '#BBF7D0',
+    gap: 8,
+  },
+  fastingBadge: {
+    backgroundColor: '#DCFCE7',
+    paddingHorizontal: 8,
+    paddingVertical: 3,
+    borderRadius: THEME.radius.full,
+  },
+  fastingBadgeText: {
+    fontSize: 10,
+    fontWeight: '700',
+    color: '#166534',
+    letterSpacing: 0.8,
+  },
+  fastingActionBtn: {
+    backgroundColor: '#16A34A',
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    borderRadius: THEME.radius.full,
+  },
+  fastingActionBtnText: {
+    color: '#FFFFFF',
+    fontSize: 12,
+    fontWeight: '600',
+  },
+  fastingTitle: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: '#14532D',
+    letterSpacing: -0.2,
+  },
+  fastingSub: {
+    fontSize: 12,
+    color: '#166534',
+    lineHeight: 16,
+    fontStyle: 'italic',
+  },
   habitsSection: {
     gap: 8,
     marginTop: 4,
@@ -412,6 +624,28 @@ const styles = StyleSheet.create({
     color: THEME.colors.textMuted,
     letterSpacing: 1,
     marginBottom: 4,
+  },
+  lockedQuestsSection: {
+    marginTop: 18,
+    paddingTop: 16,
+    borderTopWidth: 1,
+    borderTopColor: '#ECEAE6',
+    gap: 8,
+  },
+  lockedQuestsHeader: {
+    marginBottom: 6,
+    paddingHorizontal: 2,
+    gap: 2,
+  },
+  lockedQuestsTitle: {
+    fontSize: 10,
+    fontWeight: '700',
+    color: THEME.colors.textMuted,
+    letterSpacing: 1,
+  },
+  lockedQuestsSub: {
+    fontSize: 12,
+    color: THEME.colors.textLight,
   },
   questsList: {
     gap: 4,

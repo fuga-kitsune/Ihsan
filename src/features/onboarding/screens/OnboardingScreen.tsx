@@ -209,7 +209,7 @@ export const OnboardingScreen: React.FC<OnboardingScreenProps> = ({ onFinish }) 
       {/* Bottom Continue Button */}
       <View style={styles.bottomBar}>
         {step > 1 && (
-          <TouchableOpacity style={styles.prevBtn} onPress={() => setStep((s) => (s - 1))} activeOpacity={0.7}>
+          <TouchableOpacity style={styles.prevBtn} onPress={() => setStep((s) => (s - 1) as (1 | 2 | 3))} activeOpacity={0.7}>
             <Text style={styles.prevBtnText}>Back</Text>
           </TouchableOpacity>
         )}

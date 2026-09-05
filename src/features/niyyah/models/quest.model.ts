@@ -12,6 +12,8 @@ export interface SpiritualQuest {
   isCompleted: boolean;
   unit: string;
   iconName: string;
+  requiredStreak?: number;
+  isLocked?: boolean;
 }
 
 export const INITIAL_QUESTS: SpiritualQuest[] = [
@@ -27,20 +29,9 @@ export const INITIAL_QUESTS: SpiritualQuest[] = [
     isCompleted: false,
     unit: 'time',
     iconName: 'book',
+    requiredStreak: 0,
   },
-  {
-    id: 'quest_salawat',
-    title: '1,000 Salawat',
-    category: 'weekly',
-    period: 'Weekly',
-    description: 'Send blessings upon the Prophet ﷺ',
-    benefit: '',
-    targetCount: 1000,
-    currentCount: 0,
-    isCompleted: false,
-    unit: 'times',
-    iconName: 'star',
-  },
+  // Starter Tier (0-day streak)
   {
     id: 'quest_parents',
     title: 'Honor Parents / Send a Gift',
@@ -53,19 +44,7 @@ export const INITIAL_QUESTS: SpiritualQuest[] = [
     isCompleted: false,
     unit: 'times',
     iconName: 'heart',
-  },
-  {
-    id: 'quest_tahajjud',
-    title: 'Night Prayer (Tahajjud)',
-    category: 'weekly',
-    period: 'Weekly',
-    description: 'Two nights of Qiyam al-Layl',
-    benefit: '',
-    targetCount: 2,
-    currentCount: 0,
-    isCompleted: false,
-    unit: 'nights',
-    iconName: 'moon',
+    requiredStreak: 0,
   },
   {
     id: 'quest_fasting',
@@ -79,7 +58,10 @@ export const INITIAL_QUESTS: SpiritualQuest[] = [
     isCompleted: false,
     unit: 'days',
     iconName: 'sparkles',
+    requiredStreak: 0,
   },
+
+  // Sunnah Consistency Tier (2-day streak)
   {
     id: 'quest_rawatib',
     title: '12 Sunnah Rawatib',
@@ -92,6 +74,7 @@ export const INITIAL_QUESTS: SpiritualQuest[] = [
     isCompleted: false,
     unit: 'prayers',
     iconName: 'sparkles',
+    requiredStreak: 2,
   },
   {
     id: 'quest_dhuha',
@@ -105,6 +88,37 @@ export const INITIAL_QUESTS: SpiritualQuest[] = [
     isCompleted: false,
     unit: 'days',
     iconName: 'sun',
+    requiredStreak: 2,
+  },
+
+  // Spiritual Mastery Tier (7-day streak)
+  {
+    id: 'quest_tahajjud',
+    title: 'Night Prayer (Tahajjud)',
+    category: 'weekly',
+    period: 'Weekly',
+    description: 'Two nights of Qiyam al-Layl',
+    benefit: '',
+    targetCount: 2,
+    currentCount: 0,
+    isCompleted: false,
+    unit: 'nights',
+    iconName: 'moon',
+    requiredStreak: 7,
+  },
+  {
+    id: 'quest_salawat',
+    title: '1,000 Salawat',
+    category: 'weekly',
+    period: 'Weekly',
+    description: 'Send blessings upon the Prophet ﷺ',
+    benefit: '',
+    targetCount: 1000,
+    currentCount: 0,
+    isCompleted: false,
+    unit: 'times',
+    iconName: 'star',
+    requiredStreak: 7,
   },
   {
     id: 'quest_tongue',
@@ -118,5 +132,6 @@ export const INITIAL_QUESTS: SpiritualQuest[] = [
     isCompleted: false,
     unit: 'days',
     iconName: 'shield',
+    requiredStreak: 7,
   },
 ];

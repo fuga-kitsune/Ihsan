@@ -16,29 +16,34 @@ export class QuestRepository {
         current_count INTEGER DEFAULT 0,
         is_completed INTEGER DEFAULT 0,
         unit TEXT NOT NULL,
-        icon_name TEXT NOT NULL
+        icon_name TEXT NOT NULL,
+        required_streak INTEGER DEFAULT 0
       );
     `);
+
+    try {
+      await db.execAsync('ALTER TABLE spiritual_quests ADD COLUMN required_streak INTEGER DEFAULT 0');
+    } catch {}
 
     // Seed or sync defaults
     for (const q of INITIAL_QUESTS) {
       const exists = await db.getFirstAsync<{ id: string }>('SELECT id FROM spiritual_quests WHERE id = ?', [q.id]);
       if (!exists) {
         await db.runAsync(
-          `INSERT INTO spiritual_quests (id, title, category, period, description, benefit, target_count, current_count, is_completed, unit, icon_name)
-           VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
-          [q.id, q.title, q.category, q.period, q.description, q.benefit, q.targetCount, q.currentCount, q.isCompleted ? 1 : 0, q.unit, q.iconName]
+          `INSERT INTO spiritual_quests (id, title, category, period, description, benefit, target_count, current_count, is_completed, unit, icon_name, required_streak)
+           VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+          [q.id, q.title, q.category, q.period, q.description, q.benefit, q.targetCount, q.currentCount, q.isCompleted ? 1 : 0, q.unit, q.iconName, q.requiredStreak ?? 0]
         );
       } else {
         await db.runAsync(
-          'UPDATE spiritual_quests SET title = ?, description = ?, target_count = ?, unit = ? WHERE id = ?',
-          [q.title, q.description, q.targetCount, q.unit, q.id]
+          'UPDATE spiritual_quests SET title = ?, description = ?, target_count = ?, unit = ?, required_streak = ? WHERE id = ?',
+          [q.title, q.description, q.targetCount, q.unit, q.requiredStreak ?? 0, q.id]
         );
       }
     }
   }
 
-  async getAllQuests(): Promise<SpiritualQuest[]> {
+  async getAllQuests(currentStreak: number = 0): Promise<SpiritualQuest[]> {
     await this.initQuestTable();
     const db = await getDatabase();
     const rows = await db.getAllAsync<{
@@ -53,21 +58,28 @@ export class QuestRepository {
       is_completed: number;
       unit: string;
       icon_name: string;
-    }>('SELECT * FROM spiritual_quests ORDER BY is_completed ASC, period DESC');
+      required_streak: number | null;
+    }>('SELECT * FROM spiritual_quests ORDER BY is_completed ASC, required_streak ASC, period DESC');
 
-    return rows.map((r) => ({
-      id: r.id,
-      title: r.title,
-      category: r.category as any,
-      period: r.period as any,
-      description: r.description,
-      benefit: r.benefit,
-      targetCount: r.target_count,
-      currentCount: r.current_count,
-      isCompleted: r.is_completed === 1,
-      unit: r.unit,
-      iconName: r.icon_name,
-    }));
+    return rows.map((r) => {
+      const reqStreak = r.required_streak || 0;
+      const isLocked = currentStreak < reqStreak;
+      return {
+        id: r.id,
+        title: r.title,
+        category: r.category as any,
+        period: r.period as any,
+        description: r.description,
+        benefit: r.benefit,
+        targetCount: r.target_count,
+        currentCount: r.current_count,
+        isCompleted: r.is_completed === 1,
+        unit: r.unit,
+        iconName: r.icon_name,
+        requiredStreak: reqStreak,
+        isLocked,
+      };
+    });
   }
 
   async incrementQuest(id: string, amount: number = 1): Promise<SpiritualQuest | null> {

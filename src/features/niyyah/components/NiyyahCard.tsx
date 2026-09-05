@@ -6,15 +6,16 @@ import { NiyyahFulfillConfirmModal } from './NiyyahFulfillConfirmModal';
 import { THEME } from '../../../core/constants/theme';
 
 export const NiyyahCard: React.FC = () => {
-  const activeNiyyah = useNiyyahStore((state) => state.activeNiyyah);
-  const loadActiveNiyyah = useNiyyahStore((state) => state.loadActiveNiyyah);
-  const toggleComplete = useNiyyahStore((state) => state.toggleComplete);
+  const activeWeeklyNiyyahs = useNiyyahStore((state) => state.activeWeeklyNiyyahs);
+  const activeNiyyah = activeWeeklyNiyyahs[0] || null;
+  const loadNiyyahAndQuests = useNiyyahStore((state) => state.loadNiyyahAndQuests);
+  const toggleNiyyahComplete = useNiyyahStore((state) => state.toggleNiyyahComplete);
 
   const [modalVisible, setModalVisible] = useState(false);
   const [confirmModalVisible, setConfirmModalVisible] = useState(false);
 
   useEffect(() => {
-    loadActiveNiyyah();
+    loadNiyyahAndQuests();
   }, []);
 
   const handleStatusPress = () => {
@@ -29,8 +30,9 @@ export const NiyyahCard: React.FC = () => {
   };
 
   const handleConfirmFulfill = async () => {
+    if (!activeNiyyah) return;
     setConfirmModalVisible(false);
-    await toggleComplete();
+    await toggleNiyyahComplete(activeNiyyah.id, activeNiyyah.isCompleted);
   };
 
   return (

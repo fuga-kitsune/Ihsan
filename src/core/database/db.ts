@@ -92,4 +92,3 @@ async function seedInitialData(db: SQLite.SQLiteDatabase) {
       );
     }
 }
-

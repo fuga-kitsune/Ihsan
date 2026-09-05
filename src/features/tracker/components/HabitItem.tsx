@@ -29,12 +29,15 @@ export const HabitItem: React.FC<HabitItemProps> = ({ habit, onLongPress }) => {
           </View>
           <View style={styles.textCol}>
             <View style={styles.nameRow}>
-              <Text style={styles.nameLocked}>{habit.name}</Text>
+              {/* Obscured/blurred teaser name so users don't see exact deed */}
+              <View style={styles.blurredPill}>
+                <Text style={styles.blurredPlaceholder}>••••••••••••••••</Text>
+              </View>
               <View style={styles.streakBadge}>
                 <Text style={styles.streakBadgeText}>Unlocks at {habit.requiredStreak}-day streak</Text>
               </View>
             </View>
-            <Text style={styles.benefitLocked}>{habit.benefit}</Text>
+            <Text style={styles.benefitLocked}>Keep up your daily streak to reveal this deed</Text>
           </View>
         </View>
       </View>
@@ -194,5 +197,17 @@ const styles = StyleSheet.create({
     color: THEME.colors.textLight,
     fontSize: 12,
     marginTop: 2,
+  },
+  blurredPill: {
+    backgroundColor: '#E7E5E4',
+    paddingHorizontal: 12,
+    paddingVertical: 3,
+    borderRadius: THEME.radius.sm,
+  },
+  blurredPlaceholder: {
+    fontSize: 13,
+    color: '#A8A29E',
+    letterSpacing: 3,
+    fontWeight: '700',
   },
 });
