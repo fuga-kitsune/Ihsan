@@ -5,10 +5,11 @@ import { useSettingsStore } from '../store/useSettingsStore';
 import { reflectionRepository } from '../../reflection/repositories/reflection.repository';
 import { useTrackerStore } from '../../tracker/store/useTrackerStore';
 import { useReflectionStore } from '../../reflection/store/useReflectionStore';
+import { useNiyyahStore } from '../../niyyah/store/useNiyyahStore';
+import { useAnalyticsStore } from '../../analytics/store/useAnalyticsStore';
 import { ResetConfirmModal } from '../components/ResetConfirmModal';
 import { THEME } from '../../../core/constants/theme';
 import { formatHeaderDates } from '../../../core/utils/date';
-
 
 interface SettingsScreenProps {
   onBack: () => void;
@@ -26,6 +27,8 @@ export const SettingsScreen: React.FC<SettingsScreenProps> = ({ onBack }) => {
 
   const loadHabits = useTrackerStore((state) => state.loadHabits);
   const loadReflection = useReflectionStore((state) => state.loadReflection);
+  const loadNiyyahAndQuests = useNiyyahStore((state) => state.loadNiyyahAndQuests);
+  const loadAnalytics = useAnalyticsStore((state) => state.loadAnalytics);
 
   const [statsSummary, setStatsSummary] = useState({ totalDays: 0, totalReflections: 0 });
   const [resetModalVisible, setResetModalVisible] = useState(false);
@@ -74,10 +77,11 @@ export const SettingsScreen: React.FC<SettingsScreenProps> = ({ onBack }) => {
     await wipeAllData();
     await loadHabits();
     await loadReflection();
+    await loadNiyyahAndQuests();
+    await loadAnalytics();
     setStatsSummary({ totalDays: 0, totalReflections: 0 });
     onBack();
   };
-
 
   return (
     <ScrollView
@@ -207,7 +211,6 @@ export const SettingsScreen: React.FC<SettingsScreenProps> = ({ onBack }) => {
     </ScrollView>
   );
 };
-
 
 const styles = StyleSheet.create({
   scrollView: {

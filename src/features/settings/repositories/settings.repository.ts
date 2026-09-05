@@ -34,9 +34,20 @@ export class SettingsRepository {
 
   async wipeAllData(): Promise<void> {
     const db = await getDatabase();
+    // 1. Wipe all tracking logs and reflections
     await db.runAsync('DELETE FROM habit_logs');
     await db.runAsync('DELETE FROM reflections');
+    
+    // 2. Wipe all weekly goals/niyyahs
     await db.runAsync('DELETE FROM niyyahs');
+    
+    // 3. Reset all spiritual quests progress back to 0
+    await db.runAsync('UPDATE spiritual_quests SET current_count = 0, is_completed = 0');
+    
+    // 4. Reset habits back to original defaults (delete custom added ones)
+    await db.runAsync('DELETE FROM habits WHERE id LIKE "custom_%"');
+    
+    // 5. Reset settings
     await db.runAsync('DELETE FROM settings');
   }
 

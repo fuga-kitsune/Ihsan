@@ -161,6 +161,14 @@ export class HabitRepository {
     return result;
   }
 
+  async getTotalActiveDays(): Promise<number> {
+    const db = await getDatabase();
+    const row = await db.getFirstAsync<{ total: number }>(
+      'SELECT COUNT(DISTINCT date_key) as total FROM habit_logs WHERE completed = 1'
+    );
+    return row?.total || 0;
+  }
+
   async addHabit(data: { name: string; category: string; benefit: string; tag: string }): Promise<void> {
     const db = await getDatabase();
     const id = `custom_${Date.now()}`;

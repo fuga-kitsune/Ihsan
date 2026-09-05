@@ -18,8 +18,7 @@ export const WeeklyFocusGoalsHistory: React.FC<WeeklyFocusGoalsHistoryProps> = (
   return (
     <View style={styles.card}>
       <Text style={styles.tag}>GOAL ARCHIVE</Text>
-      <Text style={styles.title}>Weekly Focus History</Text>
-      <Text style={styles.subtitle}>Spiritual goals you set and accomplished on your Focus tab.</Text>
+      <Text style={styles.title}>Weekly Goals History</Text>
 
       {goals.length === 0 ? (
         <View style={styles.emptyBox}>
@@ -74,11 +73,6 @@ const styles = StyleSheet.create({
     fontWeight: '600',
     color: THEME.colors.textHeading,
     letterSpacing: -0.3,
-    marginBottom: 4,
-  },
-  subtitle: {
-    fontSize: 13,
-    color: THEME.colors.textMuted,
     marginBottom: 16,
   },
   list: {

@@ -12,7 +12,6 @@ export const HeartJourneyChart: React.FC<HeartJourneyChartProps> = ({ distributi
     <View style={styles.card}>
       <Text style={styles.tag}>SPIRITUAL STATES</Text>
       <Text style={styles.title}>Heart State Journey</Text>
-      <Text style={styles.subtitle}>Distribution of spiritual check-ins across your reflections.</Text>
 
       <View style={styles.list}>
         {distribution.map((item) => (
@@ -61,11 +60,6 @@ const styles = StyleSheet.create({
     fontWeight: '600',
     color: THEME.colors.textHeading,
     letterSpacing: -0.3,
-    marginBottom: 4,
-  },
-  subtitle: {
-    fontSize: 13,
-    color: THEME.colors.textMuted,
     marginBottom: 16,
   },
   list: {

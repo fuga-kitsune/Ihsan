@@ -1,8 +1,9 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
 import { SpiritualQuest } from '../models/quest.model';
 import { useNiyyahStore } from '../store/useNiyyahStore';
 import { useTrackerStore } from '../../tracker/store/useTrackerStore';
+import { ThemedConfirmModal } from '../../../core/components/ThemedConfirmModal';
 import { THEME } from '../../../core/constants/theme';
 
 interface QuestCardProps {
@@ -14,6 +15,8 @@ export const QuestCard: React.FC<QuestCardProps> = ({ quest, onOpenCounter }) =>
   const incrementQuest = useNiyyahStore((state) => state.incrementQuest);
   const resetQuest = useNiyyahStore((state) => state.resetQuest);
   const currentStreak = useTrackerStore((state) => state.stats.streak);
+
+  const [confirmResetVisible, setConfirmResetVisible] = useState(false);
 
   const isFriday = new Date().getDay() === 5;
   const isKahf = quest.id === 'quest_kahf';
@@ -31,7 +34,7 @@ export const QuestCard: React.FC<QuestCardProps> = ({ quest, onOpenCounter }) =>
   const handleAction = () => {
     if (quest.isLocked) return;
     if (quest.isCompleted) {
-      resetQuest(quest.id);
+      setConfirmResetVisible(true);
     } else if (isSalawat && onOpenCounter) {
       onOpenCounter(quest);
     } else {
@@ -99,16 +102,39 @@ export const QuestCard: React.FC<QuestCardProps> = ({ quest, onOpenCounter }) =>
           </Text>
         </TouchableOpacity>
 
-        {/* Action Button */}
-        <TouchableOpacity
-          onPress={handleAction}
-          activeOpacity={0.7}
-          style={[styles.btn, quest.isCompleted && styles.btnReset, isSalawat && !quest.isCompleted && styles.btnCounter]}
-        >
-          <Text style={[styles.btnText, quest.isCompleted && styles.btnResetText, isSalawat && !quest.isCompleted && styles.btnCounterText]}>
-            {quest.isCompleted ? 'Reset' : isSalawat ? 'Counter' : '+1'}
-          </Text>
-        </TouchableOpacity>
+        {/* Action Buttons: Increment + Undo/Reset */}
+        <View style={styles.actionButtonsRow}>
+          {quest.currentCount > 0 && !quest.isCompleted && (
+            <TouchableOpacity
+              onPress={() => incrementQuest(quest.id, -1)}
+              activeOpacity={0.7}
+              style={styles.btnUndo}
+              hitSlop={{ top: 6, bottom: 6, left: 6, right: 6 }}
+            >
+              <Text style={styles.btnUndoText}>-1</Text>
+            </TouchableOpacity>
+          )}
+
+          <TouchableOpacity
+            onPress={handleAction}
+            activeOpacity={0.7}
+            style={[
+              styles.btn,
+              quest.isCompleted && styles.btnReset,
+              isSalawat && !quest.isCompleted && styles.btnCounter,
+            ]}
+          >
+            <Text
+              style={[
+                styles.btnText,
+                quest.isCompleted && styles.btnResetText,
+                isSalawat && !quest.isCompleted && styles.btnCounterText,
+              ]}
+            >
+              {quest.isCompleted ? 'Reset' : isSalawat ? 'Counter' : '+1'}
+            </Text>
+          </TouchableOpacity>
+        </View>
       </View>
 
       {/* Thin Slim Progress Track */}
@@ -121,6 +147,22 @@ export const QuestCard: React.FC<QuestCardProps> = ({ quest, onOpenCounter }) =>
           ]}
         />
       </View>
+
+      <ThemedConfirmModal
+        visible={confirmResetVisible}
+        tag="RESTART SUNNAH"
+        tagColor={THEME.colors.accentRose}
+        title="Restart Sunnah Goal?"
+        description={`You have already finished "${quest.title}" for this week! Are you sure you want to reset your progress to 0 and restart?`}
+        confirmText="Restart Goal"
+        cancelText="Keep Finished"
+        confirmVariant="danger"
+        onConfirm={() => {
+          setConfirmResetVisible(false);
+          resetQuest(quest.id);
+        }}
+        onCancel={() => setConfirmResetVisible(false)}
+      />
     </View>
   );
 };
@@ -251,6 +293,26 @@ const styles = StyleSheet.create({
   countBold: {
     fontWeight: '700',
     color: THEME.colors.textHeading,
+  },
+  actionButtonsRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+  },
+  btnUndo: {
+    backgroundColor: '#F5F5F4',
+    paddingVertical: 5,
+    paddingHorizontal: 8,
+    borderRadius: THEME.radius.full,
+    borderWidth: 1,
+    borderColor: '#E7E5E4',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  btnUndoText: {
+    fontSize: 11,
+    fontWeight: '700',
+    color: THEME.colors.textMuted,
   },
   btn: {
     backgroundColor: '#F5F5F4',

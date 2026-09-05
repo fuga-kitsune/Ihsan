@@ -12,7 +12,6 @@ export const CategoryBreakdownChart: React.FC<CategoryBreakdownChartProps> = ({ 
     <View style={styles.card}>
       <Text style={styles.tag}>PILLARS OF DEVOTION</Text>
       <Text style={styles.title}>Deeds Distribution</Text>
-      <Text style={styles.subtitle}>Breakdown of completed good deeds across spiritual categories.</Text>
 
       <View style={styles.list}>
         {breakdown.map((item) => (
@@ -58,11 +57,6 @@ const styles = StyleSheet.create({
     fontWeight: '600',
     color: THEME.colors.textHeading,
     letterSpacing: -0.3,
-    marginBottom: 4,
-  },
-  subtitle: {
-    fontSize: 13,
-    color: THEME.colors.textMuted,
     marginBottom: 16,
   },
   list: {

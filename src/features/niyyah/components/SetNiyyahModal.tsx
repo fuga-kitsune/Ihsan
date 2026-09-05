@@ -30,18 +30,29 @@ export const SetNiyyahModal: React.FC<SetNiyyahModalProps> = ({
     'Guard the tongue from harsh speech',
   ];
 
-  const handleSave = async (intentionText?: string) => {
-    const textToSave = intentionText || title;
-    if (!textToSave.trim()) return;
+  const isGoalCommitted = (goalText: string) => {
+    return activeWeeklyNiyyahs.some(
+      (n) => n.title.trim().toLowerCase() === goalText.trim().toLowerCase()
+    );
+  };
 
-    if (activeWeeklyNiyyahs.length >= 3) {
-      setErrorMsg('You already have 3 active weekly goals. Finish one first to add more.');
+  const handleSave = async (intentionText?: string) => {
+    const textToSave = (intentionText || title).trim();
+    if (!textToSave) return;
+
+    if (isGoalCommitted(textToSave)) {
+      setErrorMsg('You have already committed to this goal for this week.');
       return;
     }
 
-    const success = await setNiyyah(textToSave.trim(), 'weekly');
+    if (activeWeeklyNiyyahs.length >= 3) {
+      setErrorMsg('You already have 3 active weekly goals for this week.');
+      return;
+    }
+
+    const success = await setNiyyah(textToSave, 'weekly');
     if (!success) {
-      setErrorMsg('You already have 3 active weekly goals. Finish one first to add more.');
+      setErrorMsg('Unable to add goal. You already committed to this goal or reached the 3-goal weekly limit.');
       return;
     }
 
@@ -68,9 +79,9 @@ export const SetNiyyahModal: React.FC<SetNiyyahModalProps> = ({
 
           {isFull ? (
             <View style={styles.limitBanner}>
-              <Text style={styles.limitTitle}>Goal Limit Reached (3/3)</Text>
+              <Text style={styles.limitTitle}>3 Weekly Goals Committed (3/3)</Text>
               <Text style={styles.limitSub}>
-                You have 3 active goals this week. Finish or fulfill one from your dashboard before adding a new goal.
+                You have set all 3 spiritual goals for this week. Once chosen, they remain committed for the week until next week's cycle begins.
               </Text>
             </View>
           ) : (
@@ -107,16 +118,29 @@ export const SetNiyyahModal: React.FC<SetNiyyahModalProps> = ({
               {/* Quick Goals List */}
               <Text style={[styles.label, { marginTop: 16 }]}>QUICK GOALS</Text>
               <View style={styles.ideaList}>
-                {QUICK_WEEKLY_GOALS.map((goal) => (
-                  <TouchableOpacity
-                    key={goal}
-                    style={styles.ideaCard}
-                    onPress={() => handleSave(goal)}
-                    activeOpacity={0.7}
-                  >
-                    <Text style={styles.ideaText}>{goal}</Text>
-                  </TouchableOpacity>
-                ))}
+                {QUICK_WEEKLY_GOALS.map((goal) => {
+                  const alreadyChosen = isGoalCommitted(goal);
+                  return (
+                    <TouchableOpacity
+                      key={goal}
+                      style={[styles.ideaCard, alreadyChosen && styles.ideaCardChosen]}
+                      onPress={() => !alreadyChosen && handleSave(goal)}
+                      activeOpacity={alreadyChosen ? 1 : 0.7}
+                      disabled={alreadyChosen}
+                    >
+                      <View style={styles.ideaCardRow}>
+                        <Text style={[styles.ideaText, alreadyChosen && styles.ideaTextChosen]}>
+                          {goal}
+                        </Text>
+                        {alreadyChosen && (
+                          <View style={styles.chosenBadge}>
+                            <Text style={styles.chosenBadgeText}>COMMITTED</Text>
+                          </View>
+                        )}
+                      </View>
+                    </TouchableOpacity>
+                  );
+                })}
               </View>
             </ScrollView>
           )}
@@ -238,5 +262,32 @@ const styles = StyleSheet.create({
     color: '#991B1B',
     fontSize: 12,
     fontWeight: '600',
+  },
+  ideaCardRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    gap: 8,
+  },
+  ideaCardChosen: {
+    backgroundColor: '#F7F6F3',
+    borderColor: '#E8E5DF',
+    opacity: 0.65,
+  },
+  ideaTextChosen: {
+    color: THEME.colors.textMuted,
+    textDecorationLine: 'line-through',
+  },
+  chosenBadge: {
+    backgroundColor: '#E7E5E4',
+    paddingHorizontal: 6,
+    paddingVertical: 2,
+    borderRadius: THEME.radius.full,
+  },
+  chosenBadgeText: {
+    fontSize: 9,
+    fontWeight: '700',
+    color: THEME.colors.textMuted,
+    letterSpacing: 0.5,
   },
 });

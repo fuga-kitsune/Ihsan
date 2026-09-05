@@ -14,6 +14,11 @@ import { useReflectionStore } from '../store/useReflectionStore';
 import { THEME } from '../../../core/constants/theme';
 import { formatHeaderDates } from '../../../core/utils/date';
 
+import { TodayDeedsSnapshotCard } from '../components/TodayDeedsSnapshotCard';
+import { SleepSunnahRemembranceCard } from '../components/SleepSunnahRemembranceCard';
+import { shiftDate, getTodayDateString } from '../../../core/utils/date';
+import { useTrackerStore } from '../../tracker/store/useTrackerStore';
+
 interface MuhasabahScreenProps {
   onBack: () => void;
 }
@@ -37,16 +42,35 @@ export const MuhasabahScreen: React.FC<MuhasabahScreenProps> = ({ onBack }) => {
   const updateReflection = useReflectionStore((state) => state.updateReflection);
   const setHeartState = useReflectionStore((state) => state.setHeartState);
 
+  const habits = useTrackerStore((state) => state.habits);
+  const loadHabits = useTrackerStore((state) => state.loadHabits);
+
+  const todayStr = getTodayDateString();
+  const isToday = dateKey === todayStr;
+
   const { gregorian, hijri } = formatHeaderDates(dateKey);
 
-
   useEffect(() => {
-    loadReflection();
+    loadReflection(dateKey);
+    loadHabits(dateKey);
     // Guarantee screen ALWAYS opens at the very top (Evening Muhasabah header)
     setTimeout(() => {
       scrollRef.current?.scrollTo({ y: 0, animated: false });
     }, 50);
-  }, []);
+  }, [dateKey]);
+
+  const handlePrevDay = () => {
+    const prev = shiftDate(dateKey, -1);
+    loadReflection(prev);
+    loadHabits(prev);
+  };
+
+  const handleNextDay = () => {
+    if (isToday) return;
+    const next = shiftDate(dateKey, 1);
+    loadReflection(next);
+    loadHabits(next);
+  };
 
   const HEART_STATES: HeartStateOption[] = [
     {
@@ -81,17 +105,6 @@ export const MuhasabahScreen: React.FC<MuhasabahScreenProps> = ({ onBack }) => {
     },
   ];
 
-  const JOURNAL_PROMPTS = [
-    '✨ 1 blessing or good deed from today...',
-    '🤲 1 du\'a or area of growth for tomorrow...',
-    '💡 1 lesson my heart learned today...',
-  ];
-
-  const handlePromptClick = (prompt: string) => {
-    const updated = content ? `${content}\n\n${prompt}\n` : `${prompt}\n`;
-    updateReflection(updated);
-  };
-
   return (
     <KeyboardAvoidingView
       style={styles.keyboardContainer}
@@ -108,13 +121,33 @@ export const MuhasabahScreen: React.FC<MuhasabahScreenProps> = ({ onBack }) => {
         keyboardShouldPersistTaps="handled"
         showsVerticalScrollIndicator={false}
       >
-        {/* Top Status */}
-        {isSavedVisible && (
-          <View style={styles.topNav}>
-            <View />
-            <Text style={styles.savedPill}>Saved to Journal</Text>
-          </View>
-        )}
+        {/* Top Status & Date Switcher */}
+        <View style={styles.topNavRow}>
+          <TouchableOpacity
+            style={styles.dateNavBtn}
+            onPress={handlePrevDay}
+            activeOpacity={0.7}
+          >
+            <Text style={styles.dateNavBtnText}>← Yesterday</Text>
+          </TouchableOpacity>
+
+          {isSavedVisible ? (
+            <Text style={styles.savedPill}>Saved to Journal ✓</Text>
+          ) : (
+            <Text style={styles.currentDateIndicator}>{isToday ? 'Tonight' : 'Past Reflection'}</Text>
+          )}
+
+          <TouchableOpacity
+            style={[styles.dateNavBtn, isToday && styles.dateNavBtnDisabled]}
+            onPress={handleNextDay}
+            disabled={isToday}
+            activeOpacity={0.7}
+          >
+            <Text style={[styles.dateNavBtnText, isToday && styles.dateNavBtnTextDisabled]}>
+              Tomorrow →
+            </Text>
+          </TouchableOpacity>
+        </View>
 
         {/* Header - Always seen first */}
         <View style={styles.headerSection}>
@@ -122,16 +155,15 @@ export const MuhasabahScreen: React.FC<MuhasabahScreenProps> = ({ onBack }) => {
           <Text style={styles.title}>
             Evening <Text style={styles.italicAccent}>Muhasabah.</Text>
           </Text>
-          <Text style={styles.subtitle}>
-            Take a quiet moment of stillness to audit your heart and deeds before sleep.
-          </Text>
         </View>
 
-        {/* Heart State Section */}
+        {/* 1. Today's Deeds Snapshot Card */}
+        <TodayDeedsSnapshotCard habits={habits} dateLabel={gregorian} />
+
+        {/* 2. Heart State Check-in Section */}
         <View style={styles.sectionCard}>
           <Text style={styles.sectionTag}>SPIRITUAL CHECK-IN</Text>
           <Text style={styles.sectionHeading}>How is your heart tonight?</Text>
-          <Text style={styles.sectionSub}>Select the spiritual state that resonates closest with your day.</Text>
 
           <View style={styles.stateList}>
             {HEART_STATES.map((option) => {
@@ -161,24 +193,10 @@ export const MuhasabahScreen: React.FC<MuhasabahScreenProps> = ({ onBack }) => {
           </View>
         </View>
 
-        {/* Guided Journaling Section */}
+        {/* 3. Guided Journaling Section */}
         <View style={styles.sectionCard}>
           <Text style={styles.sectionTag}>DAILY REFLECTION</Text>
           <Text style={styles.sectionHeading}>Journal & Gratitude</Text>
-          <Text style={styles.sectionSub}>Tap any prompt to add it to your thoughts.</Text>
-
-          <View style={styles.promptList}>
-            {JOURNAL_PROMPTS.map((p) => (
-              <TouchableOpacity
-                key={p}
-                style={styles.promptPill}
-                onPress={() => handlePromptClick(p)}
-                activeOpacity={0.7}
-              >
-                <Text style={styles.promptPillText}>{p}</Text>
-              </TouchableOpacity>
-            ))}
-          </View>
 
           <TextInput
             style={styles.journalInput}
@@ -189,6 +207,9 @@ export const MuhasabahScreen: React.FC<MuhasabahScreenProps> = ({ onBack }) => {
             onChangeText={updateReflection}
           />
         </View>
+
+        {/* 4. Sayyid al-Istighfar Sunnah Before Sleep Card */}
+        <SleepSunnahRemembranceCard />
       </ScrollView>
     </KeyboardAvoidingView>
   );
@@ -206,22 +227,35 @@ const styles = StyleSheet.create({
     paddingTop: 12,
   },
 
-  topNav: {
+  topNavRow: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
     marginBottom: 20,
   },
-  backBtn: {
-    paddingVertical: 8,
-    paddingHorizontal: 14,
-    borderRadius: THEME.radius.full,
-    backgroundColor: THEME.colors.bgPill,
+  dateNavBtn: {
+    paddingVertical: 7,
+    paddingHorizontal: 12,
+    borderRadius: THEME.radius.md,
+    backgroundColor: THEME.colors.bgCard,
+    borderWidth: 1,
+    borderColor: '#ECEAE6',
   },
-  backBtnText: {
-    fontSize: 13,
+  dateNavBtnDisabled: {
+    opacity: 0.3,
+  },
+  dateNavBtnText: {
+    fontSize: 12,
     fontWeight: '600',
-    color: THEME.colors.textBody,
+    color: THEME.colors.primary,
+  },
+  dateNavBtnTextDisabled: {
+    color: THEME.colors.textLight,
+  },
+  currentDateIndicator: {
+    fontSize: 11,
+    fontWeight: '600',
+    color: THEME.colors.textMuted,
   },
   savedPill: {
     fontSize: 12,
@@ -229,7 +263,7 @@ const styles = StyleSheet.create({
     color: THEME.colors.primary,
   },
   headerSection: {
-    marginBottom: 28,
+    marginBottom: 24,
   },
   dateLabel: {
     fontSize: 11,
@@ -251,12 +285,6 @@ const styles = StyleSheet.create({
     fontStyle: 'italic',
     color: THEME.colors.primary,
   },
-  subtitle: {
-    fontSize: 14,
-    color: THEME.colors.textMuted,
-    lineHeight: 20,
-    fontWeight: '400',
-  },
   sectionCard: {
     backgroundColor: THEME.colors.bgCard,
     borderRadius: THEME.radius.lg,
@@ -277,7 +305,7 @@ const styles = StyleSheet.create({
     fontWeight: '600',
     color: THEME.colors.textHeading,
     letterSpacing: -0.3,
-    marginBottom: 4,
+    marginBottom: 16,
   },
   sectionSub: {
     fontSize: 13,
@@ -344,21 +372,6 @@ const styles = StyleSheet.create({
     fontSize: 12,
     color: THEME.colors.textMuted,
     lineHeight: 16,
-  },
-  promptList: {
-    gap: 8,
-    marginBottom: 14,
-  },
-  promptPill: {
-    backgroundColor: THEME.colors.bgCardSubtle,
-    paddingHorizontal: 14,
-    paddingVertical: 10,
-    borderRadius: THEME.radius.md,
-  },
-  promptPillText: {
-    fontSize: 13,
-    color: THEME.colors.textBody,
-    fontWeight: '500',
   },
   journalInput: {
     backgroundColor: THEME.colors.bgCardSubtle,

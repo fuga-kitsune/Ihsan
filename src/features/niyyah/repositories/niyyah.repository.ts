@@ -21,17 +21,27 @@ export class NiyyahRepository {
     } catch { }
   }
 
+  // Helper to get current week key (e.g., 2026-W36)
+  getWeekKey(d: Date = new Date()): string {
+    const dCopy = new Date(Date.UTC(d.getFullYear(), d.getMonth(), d.getDate()));
+    const dayNum = dCopy.getUTCDay() || 7;
+    dCopy.setUTCDate(dCopy.getUTCDate() + 4 - dayNum);
+    const yearStart = new Date(Date.UTC(dCopy.getUTCFullYear(), 0, 1));
+    const weekNo = Math.ceil(((dCopy.getTime() - yearStart.getTime()) / 86400000 + 1) / 7);
+    return `${dCopy.getUTCFullYear()}-W${String(weekNo).padStart(2, '0')}`;
+  }
+
   async getActiveNiyyahs(timeframe?: NiyyahTimeframe): Promise<NiyyahItem[]> {
     await this.initNiyyahTable();
     const db = await getDatabase();
-    let query = 'SELECT * FROM niyyahs WHERE is_completed = 0';
-    const params: any[] = [];
+    const currentWeekKey = this.getWeekKey();
 
-    if (timeframe) {
-      query += ' AND timeframe = ?';
-      params.push(timeframe);
-    }
-    query += ' ORDER BY created_at DESC LIMIT 3';
+    // Query weekly goals set for this week (target_date stores week key)
+    const query = `
+      SELECT * FROM niyyahs 
+      WHERE timeframe = 'weekly' AND (target_date = ? OR (target_date = '' AND is_completed = 0))
+      ORDER BY created_at ASC LIMIT 3
+    `;
 
     const rows = await db.getAllAsync<{
       id: string;
@@ -42,7 +52,7 @@ export class NiyyahRepository {
       is_completed: number;
       created_at: number;
       completed_at?: number | null;
-    }>(query, params);
+    }>(query, [currentWeekKey]);
 
     return rows.map((row) => ({
       id: row.id,
@@ -90,25 +100,36 @@ export class NiyyahRepository {
   async setNiyyah(title: string, timeframe: NiyyahTimeframe, category: string = 'General'): Promise<NiyyahItem | null> {
     await this.initNiyyahTable();
     const db = await getDatabase();
+    const weekKey = this.getWeekKey();
 
-    // Check count of active uncompleted goals in this timeframe
-    const countRow = await db.getFirstAsync<{ count: number }>(
-      'SELECT COUNT(*) as count FROM niyyahs WHERE is_completed = 0 AND timeframe = ?',
-      [timeframe]
+    // Prevent selecting the exact same goal more than once in the same week
+    const existing = await db.getFirstAsync<{ id: string }>(
+      'SELECT id FROM niyyahs WHERE timeframe = ? AND (target_date = ? OR target_date = "") AND LOWER(title) = LOWER(?)',
+      [timeframe, weekKey, title.trim()]
     );
 
-    if (countRow && countRow.count >= 3) {
-      // Cannot add more than 3 active goals
+    if (existing) {
       return null;
     }
 
-    // Create new Niyyah entry
+    // Check count of weekly goals committed for this week
+    const countRow = await db.getFirstAsync<{ count: number }>(
+      'SELECT COUNT(*) as count FROM niyyahs WHERE timeframe = ? AND (target_date = ? OR target_date = "")',
+      [timeframe, weekKey]
+    );
+
+    if (countRow && countRow.count >= 3) {
+      // Cannot add more than 3 active goals for this week
+      return null;
+    }
+
+    // Create new Niyyah entry locked to this week
     const id = `niyyah_${Date.now()}_${Math.random().toString(36).substr(2, 4)}`;
     const now = Date.now();
 
     await db.runAsync(
       'INSERT INTO niyyahs (id, title, timeframe, category, target_date, is_completed, created_at, completed_at) VALUES (?, ?, ?, ?, ?, 0, ?, NULL)',
-      [id, title, timeframe, category, '', now]
+      [id, title, timeframe, category, weekKey, now]
     );
 
     return {
@@ -116,7 +137,7 @@ export class NiyyahRepository {
       title,
       timeframe,
       category,
-      targetDate: '',
+      targetDate: weekKey,
       isCompleted: false,
       createdAt: now,
       completedAt: null,

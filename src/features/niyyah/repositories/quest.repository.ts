@@ -100,7 +100,7 @@ export class QuestRepository {
 
     if (!quest) return null;
 
-    const newCount = Math.min(quest.current_count + amount, quest.target_count);
+    const newCount = Math.max(0, Math.min(quest.current_count + amount, quest.target_count));
     const isCompleted = newCount >= quest.target_count ? 1 : 0;
 
     await db.runAsync(

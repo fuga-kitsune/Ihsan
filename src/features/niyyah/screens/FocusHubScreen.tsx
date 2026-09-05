@@ -6,6 +6,7 @@ import { useTrackerStore } from '../../tracker/store/useTrackerStore';
 import { QuestCard } from '../components/QuestCard';
 import { SetNiyyahModal } from '../components/SetNiyyahModal';
 import { SalawatCounterModal } from '../components/SalawatCounterModal';
+import { ThemedConfirmModal } from '../../../core/components/ThemedConfirmModal';
 import { SpiritualQuest } from '../models/quest.model';
 import { THEME } from '../../../core/constants/theme';
 
@@ -21,6 +22,34 @@ export const FocusHubScreen: React.FC = () => {
 
   const [modalVisible, setModalVisible] = useState(false);
   const [salawatModalVisible, setSalawatModalVisible] = useState(false);
+
+  // Themed confirmation modal state for Weekly Goal completion
+  const [finishGoalTarget, setFinishGoalTarget] = useState<{ id: string; title: string } | null>(null);
+
+  // Themed confirmation modal state for Event restart
+  const [resetEventTarget, setResetEventTarget] = useState<{ id: string; title: string } | null>(null);
+
+  const handlePromptFinishGoal = (id: string, title: string) => {
+    setFinishGoalTarget({ id, title });
+  };
+
+  const confirmFinishGoal = () => {
+    if (finishGoalTarget) {
+      toggleNiyyahComplete(finishGoalTarget.id, false);
+      setFinishGoalTarget(null);
+    }
+  };
+
+  const confirmResetEvent = (questTitle: string, questId: string) => {
+    setResetEventTarget({ id: questId, title: questTitle });
+  };
+
+  const executeResetEvent = () => {
+    if (resetEventTarget) {
+      resetQuest(resetEventTarget.id);
+      setResetEventTarget(null);
+    }
+  };
 
   useEffect(() => {
     loadNiyyahAndQuests();
@@ -47,15 +76,6 @@ export const FocusHubScreen: React.FC = () => {
   // Quests (filter out Kahf as it is in the Event banner)
   const allQuests = quests.filter((q) => q.id !== 'quest_kahf');
   const unlockedQuests = allQuests.filter((q) => !q.isLocked);
-  const lockedQuests = allQuests.filter((q) => q.isLocked);
-
-  // Show only 1 upcoming milestone teaser to keep mystery
-  const nextRequiredStreak = lockedQuests.length > 0
-    ? Math.min(...lockedQuests.map((q) => q.requiredStreak ?? 999))
-    : null;
-  const nextMilestoneQuests = nextRequiredStreak !== null
-    ? lockedQuests.filter((q) => (q.requiredStreak ?? 0) === nextRequiredStreak).slice(0, 1)
-    : [];
 
   const activeCount = activeWeeklyNiyyahs.length;
   const canAddMore = activeCount < 3;
@@ -77,7 +97,95 @@ export const FocusHubScreen: React.FC = () => {
         </Text>
       </View>
 
-      {/* DYNAMIC SUNNAH EVENTS BANNER */}
+      {/* Up to 3 Weekly Goals Section */}
+      <View style={styles.focusContainer}>
+        <View style={styles.sectionHeader}>
+          <View style={styles.sectionTitleRow}>
+            <Text style={styles.sectionHeading}>THIS WEEK'S GOALS</Text>
+            <View style={styles.countBadge}>
+              <Text style={styles.countBadgeText}>{activeCount}/3</Text>
+            </View>
+          </View>
+          {canAddMore && (
+            <TouchableOpacity onPress={() => setModalVisible(true)} hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}>
+              <Text style={styles.addActionText}>+ Add Goal</Text>
+            </TouchableOpacity>
+          )}
+        </View>
+
+        {activeWeeklyNiyyahs.length === 0 ? (
+          <TouchableOpacity style={styles.emptyPrompt} onPress={() => setModalVisible(true)} activeOpacity={0.7}>
+            <Text style={styles.emptyTitle}>Pick Up to 3 Weekly Goals</Text>
+            <Text style={styles.emptySub}>Choose from Starter, Sunnah, and Mastery goals as your streak grows.</Text>
+          </TouchableOpacity>
+        ) : (
+          <View style={styles.goalsList}>
+            {activeWeeklyNiyyahs.map((goal, idx) => {
+              const isSalawatGoal = goal.title.toLowerCase().includes('salawat');
+              const isDone = goal.isCompleted;
+
+              return (
+                <View key={goal.id} style={[styles.goalCard, isDone && styles.goalCardCompleted]}>
+                  <View style={styles.goalTop}>
+                    <Text style={[styles.goalIndex, isDone && styles.goalIndexCompleted]}>
+                      GOAL {idx + 1} • {isDone ? 'COMPLETED' : 'COMMITTED'}
+                    </Text>
+                    <View style={[styles.committedBadge, isDone && styles.committedBadgeDone]}>
+                      <Text style={[styles.committedBadgeText, isDone && styles.committedBadgeTextDone]}>
+                        {isDone ? '✓ FULFILLED' : '🔒 THIS WEEK'}
+                      </Text>
+                    </View>
+                  </View>
+
+                  <Text style={[styles.goalTitle, isDone && styles.goalTitleCompleted]}>
+                    "{goal.title}"
+                  </Text>
+
+                  <View style={styles.goalActionsRow}>
+                    {isSalawatGoal && salawatQuest && !isDone && (
+                      <TouchableOpacity
+                        style={styles.counterBtn}
+                        onPress={() => setSalawatModalVisible(true)}
+                        activeOpacity={0.7}
+                      >
+                        <Text style={styles.counterBtnText}>
+                          Tap Counter ({salawatQuest.currentCount}/{salawatQuest.targetCount})
+                        </Text>
+                      </TouchableOpacity>
+                    )}
+
+                    {!isDone ? (
+                      <TouchableOpacity
+                        style={styles.fulfillBtn}
+                        onPress={() => handlePromptFinishGoal(goal.id, goal.title)}
+                        activeOpacity={0.7}
+                      >
+                        <Text style={styles.fulfillBtnText}>Mark as Finished ✓</Text>
+                      </TouchableOpacity>
+                    ) : (
+                      <View style={styles.finishedPill}>
+                        <Text style={styles.finishedPillText}>✓ Finished • Locked until next week</Text>
+                      </View>
+                    )}
+                  </View>
+                </View>
+              );
+            })}
+
+            {canAddMore && (
+              <TouchableOpacity
+                style={styles.addSlotBtn}
+                onPress={() => setModalVisible(true)}
+                activeOpacity={0.7}
+              >
+                <Text style={styles.addSlotText}>+ Pick Weekly Goal ({3 - activeCount} slot left)</Text>
+              </TouchableOpacity>
+            )}
+          </View>
+        )}
+      </View>
+
+      {/* DYNAMIC SUNNAH EVENTS BANNER (Placed directly above Weekly Sunnah) */}
       {isFriday && (
         <View style={styles.eventGroup}>
           {/* 1) Friday Hot Surah Kahf */}
@@ -88,7 +196,7 @@ export const FocusHubScreen: React.FC = () => {
                   <Text style={styles.hotBadgeText}>HOT • FRIDAY SUNNAH</Text>
                 </View>
                 <TouchableOpacity
-                  onPress={() => kahfQuest.isCompleted ? resetQuest(kahfQuest.id) : incrementQuest(kahfQuest.id, 1)}
+                  onPress={() => kahfQuest.isCompleted ? confirmResetEvent(kahfQuest.title, kahfQuest.id) : incrementQuest(kahfQuest.id, 1)}
                   style={[styles.hotActionBtn, kahfQuest.isCompleted && styles.hotActionBtnCompleted]}
                   activeOpacity={0.7}
                 >
@@ -142,7 +250,7 @@ export const FocusHubScreen: React.FC = () => {
               <Text style={styles.fastingBadgeText}>SUNNAH EVENT • {dayOfWeek === 1 ? 'MONDAY' : 'THURSDAY'} FASTING</Text>
             </View>
             <TouchableOpacity
-              onPress={() => fastingQuest.isCompleted ? resetQuest(fastingQuest.id) : incrementQuest(fastingQuest.id, 1)}
+              onPress={() => fastingQuest.isCompleted ? confirmResetEvent(fastingQuest.title, fastingQuest.id) : incrementQuest(fastingQuest.id, 1)}
               style={styles.fastingActionBtn}
               activeOpacity={0.7}
             >
@@ -160,86 +268,9 @@ export const FocusHubScreen: React.FC = () => {
         </View>
       )}
 
-      {/* Up to 3 Weekly Goals Section */}
-      <View style={styles.focusContainer}>
-        <View style={styles.sectionHeader}>
-          <View style={styles.sectionTitleRow}>
-            <Text style={styles.sectionHeading}>THIS WEEK'S GOALS</Text>
-            <View style={styles.countBadge}>
-              <Text style={styles.countBadgeText}>{activeCount}/3</Text>
-            </View>
-          </View>
-          {canAddMore && (
-            <TouchableOpacity onPress={() => setModalVisible(true)} hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}>
-              <Text style={styles.addActionText}>+ Add Goal</Text>
-            </TouchableOpacity>
-          )}
-        </View>
-
-        {activeWeeklyNiyyahs.length === 0 ? (
-          <TouchableOpacity style={styles.emptyPrompt} onPress={() => setModalVisible(true)} activeOpacity={0.7}>
-            <Text style={styles.emptyTitle}>Pick Up to 3 Weekly Goals</Text>
-            <Text style={styles.emptySub}>Choose from Starter, Sunnah, and Mastery goals as your streak grows.</Text>
-          </TouchableOpacity>
-        ) : (
-          <View style={styles.goalsList}>
-            {activeWeeklyNiyyahs.map((goal, idx) => {
-              const isSalawatGoal = goal.title.toLowerCase().includes('salawat');
-              return (
-                <View key={goal.id} style={styles.goalCard}>
-                  <View style={styles.goalTop}>
-                    <Text style={styles.goalIndex}>GOAL {idx + 1}</Text>
-                    <TouchableOpacity
-                      onPress={() => deleteNiyyah(goal.id)}
-                      hitSlop={{ top: 6, bottom: 6, left: 6, right: 6 }}
-                    >
-                      <Text style={styles.removeText}>Remove</Text>
-                    </TouchableOpacity>
-                  </View>
-
-                  <Text style={styles.goalTitle}>"{goal.title}"</Text>
-
-                  <View style={styles.goalActionsRow}>
-                    {isSalawatGoal && salawatQuest && (
-                      <TouchableOpacity
-                        style={styles.counterBtn}
-                        onPress={() => setSalawatModalVisible(true)}
-                        activeOpacity={0.7}
-                      >
-                        <Text style={styles.counterBtnText}>
-                          Tap Counter ({salawatQuest.currentCount}/{salawatQuest.targetCount})
-                        </Text>
-                      </TouchableOpacity>
-                    )}
-
-                    <TouchableOpacity
-                      style={styles.fulfillBtn}
-                      onPress={() => toggleNiyyahComplete(goal.id, false)}
-                      activeOpacity={0.7}
-                    >
-                      <Text style={styles.fulfillBtnText}>Mark as Finished ✓</Text>
-                    </TouchableOpacity>
-                  </View>
-                </View>
-              );
-            })}
-
-            {canAddMore && (
-              <TouchableOpacity
-                style={styles.addSlotBtn}
-                onPress={() => setModalVisible(true)}
-                activeOpacity={0.7}
-              >
-                <Text style={styles.addSlotText}>+ Add Goal ({3 - activeCount} slot left)</Text>
-              </TouchableOpacity>
-            )}
-          </View>
-        )}
-      </View>
-
-      {/* Weekly Spiritual Habits Below Section */}
+      {/* Weekly Sunnah Section */}
       <View style={styles.habitsSection}>
-        <Text style={styles.habitsHeading}>WEEKLY SUNNAH HABITS</Text>
+        <Text style={styles.habitsHeading}>WEEKLY SUNNAH</Text>
         <View style={styles.questsList}>
           {unlockedQuests.map((quest) => (
             <QuestCard
@@ -249,26 +280,6 @@ export const FocusHubScreen: React.FC = () => {
             />
           ))}
         </View>
-
-        {/* Locked upcoming quests teaser (1 milestone only, blurred) */}
-        {nextMilestoneQuests.length > 0 && (
-          <View style={styles.lockedQuestsSection}>
-            <View style={styles.lockedQuestsHeader}>
-              <Text style={styles.lockedQuestsTitle}>NEXT HABIT TO UNLOCK</Text>
-              <Text style={styles.lockedQuestsSub}>Grow your daily streak to reveal this spiritual habit</Text>
-            </View>
-
-            <View style={styles.questsList}>
-              {nextMilestoneQuests.map((quest) => (
-                <QuestCard
-                  key={quest.id}
-                  quest={quest}
-                  onOpenCounter={() => setSalawatModalVisible(true)}
-                />
-              ))}
-            </View>
-          </View>
-        )}
       </View>
 
       <SetNiyyahModal
@@ -284,6 +295,34 @@ export const FocusHubScreen: React.FC = () => {
           onClose={() => setSalawatModalVisible(false)}
         />
       )}
+
+      {/* Themed Confirmation for Weekly Goal Completion */}
+      <ThemedConfirmModal
+        visible={!!finishGoalTarget}
+        tag="WEEKLY GOAL"
+        tagColor={THEME.colors.primary}
+        title="Complete Weekly Goal?"
+        description={`Are you sure you want to mark "${finishGoalTarget?.title}" as finished? Once fulfilled, it cannot be changed or swapped until next week.`}
+        confirmText="Mark Finished ✓"
+        cancelText="Not Yet"
+        confirmVariant="primary"
+        onConfirm={confirmFinishGoal}
+        onCancel={() => setFinishGoalTarget(null)}
+      />
+
+      {/* Themed Confirmation for Event Restart */}
+      <ThemedConfirmModal
+        visible={!!resetEventTarget}
+        tag="RESTART EVENT"
+        tagColor={THEME.colors.accentRose}
+        title="Restart Sunnah Goal?"
+        description={`You have already finished "${resetEventTarget?.title}" for today! Are you sure you want to reset your progress and restart?`}
+        confirmText="Restart Event"
+        cancelText="Keep Finished"
+        confirmVariant="danger"
+        onConfirm={executeResetEvent}
+        onCancel={() => setResetEventTarget(null)}
+      />
     </ScrollView>
   );
 };
@@ -366,6 +405,10 @@ const styles = StyleSheet.create({
     borderColor: '#EFE8DE',
     gap: 8,
   },
+  goalCardCompleted: {
+    backgroundColor: '#F8FCF9',
+    borderColor: '#D7EFE2',
+  },
   goalTop: {
     flexDirection: 'row',
     justifyContent: 'space-between',
@@ -377,10 +420,26 @@ const styles = StyleSheet.create({
     color: '#B45309',
     letterSpacing: 0.8,
   },
-  removeText: {
-    fontSize: 11,
-    color: THEME.colors.textMuted,
-    fontWeight: '500',
+  goalIndexCompleted: {
+    color: '#166534',
+  },
+  committedBadge: {
+    backgroundColor: '#FEF3C7',
+    paddingHorizontal: 8,
+    paddingVertical: 2,
+    borderRadius: THEME.radius.full,
+  },
+  committedBadgeDone: {
+    backgroundColor: '#DCFCE7',
+  },
+  committedBadgeText: {
+    fontSize: 9,
+    fontWeight: '800',
+    color: '#B45309',
+    letterSpacing: 0.6,
+  },
+  committedBadgeTextDone: {
+    color: '#166534',
   },
   goalTitle: {
     fontSize: 16,
@@ -388,6 +447,21 @@ const styles = StyleSheet.create({
     color: THEME.colors.textHeading,
     lineHeight: 22,
     fontFamily: THEME.fonts.serif,
+  },
+  goalTitleCompleted: {
+    color: '#1E3A2F',
+    textDecorationLine: 'line-through',
+  },
+  finishedPill: {
+    backgroundColor: '#DCFCE7',
+    paddingVertical: 6,
+    paddingHorizontal: 12,
+    borderRadius: THEME.radius.full,
+  },
+  finishedPillText: {
+    fontSize: 11,
+    fontWeight: '700',
+    color: '#166534',
   },
   goalActionsRow: {
     flexDirection: 'row',
@@ -624,28 +698,6 @@ const styles = StyleSheet.create({
     color: THEME.colors.textMuted,
     letterSpacing: 1,
     marginBottom: 4,
-  },
-  lockedQuestsSection: {
-    marginTop: 18,
-    paddingTop: 16,
-    borderTopWidth: 1,
-    borderTopColor: '#ECEAE6',
-    gap: 8,
-  },
-  lockedQuestsHeader: {
-    marginBottom: 6,
-    paddingHorizontal: 2,
-    gap: 2,
-  },
-  lockedQuestsTitle: {
-    fontSize: 10,
-    fontWeight: '700',
-    color: THEME.colors.textMuted,
-    letterSpacing: 1,
-  },
-  lockedQuestsSub: {
-    fontSize: 12,
-    color: THEME.colors.textLight,
   },
   questsList: {
     gap: 4,
