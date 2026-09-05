@@ -74,8 +74,23 @@ export class HabitRepository {
     const completedMap = new Map<string, number>();
     rows.forEach((r: { date_key: string; count: number }) => completedMap.set(r.date_key, r.count));
 
+    const today = new Date();
+    const todayKey = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}-${String(today.getDate()).padStart(2, '0')}`;
+    const todayCount = completedMap.get(todayKey) || 0;
+
     let streak = 0;
-    const date = new Date();
+    const date = new Date(today);
+
+    // If today is completed (>= 5 deeds), include today in streak
+    if (todayCount >= 5) {
+      streak++;
+      date.setDate(date.getDate() - 1);
+    } else {
+      // If today is not completed yet, calculate existing active streak starting from yesterday
+      date.setDate(date.getDate() - 1);
+    }
+
+    // Count backward consecutively from past days
     while (true) {
       const key = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}`;
       const count = completedMap.get(key) || 0;

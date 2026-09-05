@@ -13,11 +13,22 @@ export const ProgressCard: React.FC = () => {
 
   const flameScale = useRef(new Animated.Value(1)).current;
   const pulseAnim = useRef(new Animated.Value(1)).current;
+  const progressAnim = useRef(new Animated.Value(stats.percentage)).current;
 
   const todayKey = getTodayDateString();
   const todayCount = weeklyCompletion[todayKey] ?? (stats.completedCount);
   const isProtected = todayCount >= 5;
   const streak = stats.streak;
+
+  useEffect(() => {
+    // Smooth, snappy spring animation for the progress bar fill
+    Animated.spring(progressAnim, {
+      toValue: stats.percentage,
+      friction: 8,
+      tension: 50,
+      useNativeDriver: false,
+    }).start();
+  }, [stats.percentage]);
 
   useEffect(() => {
     // Breathing pulse for the flame/lock
@@ -117,9 +128,20 @@ export const ProgressCard: React.FC = () => {
           </View>
         </View>
 
-        {/* Slim Progress Bar */}
+        {/* Slim Animated Progress Bar */}
         <View style={styles.miniBarBackground}>
-          <View style={[styles.miniBarFill, { width: `${stats.percentage}%` }]} />
+          <Animated.View
+            style={[
+              styles.miniBarFill,
+              {
+                width: progressAnim.interpolate({
+                  inputRange: [0, 100],
+                  outputRange: ['0%', '100%'],
+                  extrapolate: 'clamp',
+                }),
+              },
+            ]}
+          />
         </View>
 
         {/* 7-DAY WEEK ROW (M T W T F S S) */}

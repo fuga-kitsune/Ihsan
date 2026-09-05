@@ -63,7 +63,7 @@ export const useTrackerStore = create<TrackerState>((set, get) => ({
           completedCount,
           totalCount,
           percentage,
-          streak: Math.max(streak, completedCount >= 5 ? 1 : 0),
+          streak,
         },
         isLoading: false,
       });
@@ -107,7 +107,6 @@ export const useTrackerStore = create<TrackerState>((set, get) => ({
         ...state.stats,
         completedCount,
         percentage,
-        streak: Math.max(state.stats.streak, completedCount >= 5 ? 1 : 0),
       },
     }));
 
