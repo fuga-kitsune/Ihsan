@@ -9,24 +9,29 @@ import { NiyyahMilestonesHistory } from '../components/NiyyahMilestonesHistory';
 import { useNiyyahStore } from '../../niyyah/store/useNiyyahStore';
 import { THEME } from '../../../core/constants/theme';
 
+import { InteractiveCalendarHeatmap } from '../components/InteractiveCalendarHeatmap';
+import { CategoryBreakdownChart } from '../components/CategoryBreakdownChart';
+import { WeeklyFocusGoalsHistory } from '../components/WeeklyFocusGoalsHistory';
+
+import { useAnalyticsStore } from '../store/useAnalyticsStore';
+
 interface AnalyticsScreenProps {
-  onBack: () => void;
+  onBack?: () => void;
 }
 
-export const AnalyticsScreen: React.FC<AnalyticsScreenProps> = ({ onBack }) => {
+export const AnalyticsScreen: React.FC<AnalyticsScreenProps> = () => {
   const insets = useSafeAreaInsets();
-  const [monthOffset, setMonthOffset] = useState<number>(0); // 0 = this month, -1 = last month, -2 = 2 months ago
-  const [data, setData] = useState<AnalyticsSummary | null>(null);
+  const [activeTab, setActiveTab] = useState<'archive' | 'insights'>('archive');
+  const data = useAnalyticsStore((state) => state.data);
+  const monthOffset = useAnalyticsStore((state) => state.monthOffset);
+  const loadAnalytics = useAnalyticsStore((state) => state.loadAnalytics);
+  const setMonthOffset = useAnalyticsStore((state) => state.setMonthOffset);
 
   const allNiyyahs = useNiyyahStore((state) => state.allNiyyahs);
   const loadNiyyahAndQuests = useNiyyahStore((state) => state.loadNiyyahAndQuests);
 
-  const loadData = (offset: number) => {
-    analyticsRepository.getAnalyticsSummary(offset).then(setData);
-  };
-
   useEffect(() => {
-    loadData(monthOffset);
+    loadAnalytics(monthOffset);
     loadNiyyahAndQuests();
   }, [monthOffset]);
 
@@ -41,13 +46,11 @@ export const AnalyticsScreen: React.FC<AnalyticsScreenProps> = ({ onBack }) => {
       ]}
       showsVerticalScrollIndicator={false}
     >
-
-
       {/* Month Switcher Header */}
       <View style={styles.monthHeaderRow}>
         <TouchableOpacity
           style={styles.monthNavBtn}
-          onPress={() => setMonthOffset((prev) => prev - 1)}
+          onPress={() => setMonthOffset(monthOffset - 1)}
           activeOpacity={0.7}
         >
           <Text style={styles.monthNavBtnText}>← Prev</Text>
@@ -60,7 +63,7 @@ export const AnalyticsScreen: React.FC<AnalyticsScreenProps> = ({ onBack }) => {
 
         <TouchableOpacity
           style={[styles.monthNavBtn, data.isCurrentMonth && styles.monthNavBtnDisabled]}
-          onPress={() => !data.isCurrentMonth && setMonthOffset((prev) => Math.min(prev + 1, 0))}
+          onPress={() => !data.isCurrentMonth && setMonthOffset(Math.min(monthOffset + 1, 0))}
           disabled={data.isCurrentMonth}
           activeOpacity={0.7}
         >
@@ -70,32 +73,49 @@ export const AnalyticsScreen: React.FC<AnalyticsScreenProps> = ({ onBack }) => {
         </TouchableOpacity>
       </View>
 
-      {/* Stat Metric Cards */}
-      <View style={styles.statGrid}>
-        <View style={styles.statCard}>
-          <Text style={styles.statNum}>{data.totalDeedsCompleted}</Text>
-          <Text style={styles.statLabel}>Deeds Completed</Text>
-        </View>
+      {/* Clean Segmented Tab Control */}
+      <View style={styles.segmentedControl}>
+        <TouchableOpacity
+          style={[styles.segmentBtn, activeTab === 'archive' && styles.segmentBtnActive]}
+          onPress={() => setActiveTab('archive')}
+          activeOpacity={0.8}
+        >
+          <Text style={[styles.segmentText, activeTab === 'archive' && styles.segmentTextActive]}>
+            Calendar & Deeds Log
+          </Text>
+        </TouchableOpacity>
 
-        <View style={styles.statCard}>
-          <Text style={styles.statNum}>{data.activeDaysCount} <Text style={styles.statSub}>days</Text></Text>
-          <Text style={styles.statLabel}>Active Devotion</Text>
-        </View>
-
-        <View style={styles.statCard}>
-          <Text style={styles.statNum}>{data.averageCompletionRate}%</Text>
-          <Text style={styles.statLabel}>Avg Consistency</Text>
-        </View>
+        <TouchableOpacity
+          style={[styles.segmentBtn, activeTab === 'insights' && styles.segmentBtnActive]}
+          onPress={() => setActiveTab('insights')}
+          activeOpacity={0.8}
+        >
+          <Text style={[styles.segmentText, activeTab === 'insights' && styles.segmentTextActive]}>
+            Categories & Heart
+          </Text>
+        </TouchableOpacity>
       </View>
 
-      {/* Monthly Heatmap Grid */}
-      <ConsistencyHeatmap days={data.heatmapDays} title={`${data.monthTitle} Heatmap`} />
+      {activeTab === 'archive' ? (
+        <>
+          {/* Interactive Tap-Day Calendar Heatmap Grid */}
+          <InteractiveCalendarHeatmap
+            days={data.heatmapDays}
+            title={`${data.monthTitle} Devotion Grid`}
+          />
 
-      {/* Heart State Journey Chart */}
-      <HeartJourneyChart distribution={data.heartDistribution} />
+          {/* Weekly Focus Goals History */}
+          <WeeklyFocusGoalsHistory goals={allNiyyahs} />
+        </>
+      ) : (
+        <>
+          {/* Pillars of Devotion Category Breakdown */}
+          <CategoryBreakdownChart breakdown={data.categoryBreakdown} />
 
-      {/* Niyyah Milestones History */}
-      <NiyyahMilestonesHistory niyyahs={allNiyyahs} />
+          {/* Heart State Distribution */}
+          <HeartJourneyChart distribution={data.heartDistribution} />
+        </>
+      )}
     </ScrollView>
   );
 };
@@ -172,36 +192,36 @@ const styles = StyleSheet.create({
     color: THEME.colors.textMuted,
     marginTop: 2,
   },
-  statGrid: {
+  segmentedControl: {
     flexDirection: 'row',
-    gap: 10,
-    marginBottom: 20,
-  },
-  statCard: {
-    flex: 1,
-    backgroundColor: THEME.colors.bgCard,
+    backgroundColor: '#F2EFEB',
     borderRadius: THEME.radius.md,
-    paddingVertical: 16,
-    paddingHorizontal: 12,
-    alignItems: 'center',
+    padding: 3,
+    marginBottom: 16,
     gap: 4,
-    borderWidth: 1,
-    borderColor: '#ECEAE6',
   },
-  statNum: {
-    fontSize: 20,
-    fontWeight: '700',
-    color: THEME.colors.primary,
+  segmentBtn: {
+    flex: 1,
+    paddingVertical: 10,
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderRadius: THEME.radius.sm,
   },
-  statSub: {
-    fontSize: 13,
-    fontWeight: '400',
-    color: THEME.colors.textMuted,
+  segmentBtnActive: {
+    backgroundColor: '#FFFFFF',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.06,
+    shadowRadius: 2,
+    elevation: 1,
   },
-  statLabel: {
-    fontSize: 10,
+  segmentText: {
+    fontSize: 12,
     fontWeight: '600',
     color: THEME.colors.textMuted,
-    textAlign: 'center',
+  },
+  segmentTextActive: {
+    color: THEME.colors.textHeading,
+    fontWeight: '700',
   },
 });

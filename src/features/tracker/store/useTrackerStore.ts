@@ -123,6 +123,9 @@ export const useTrackerStore = create<TrackerState>((set, get) => ({
           streak,
         },
       }));
+      // Real-time synchronization for Journey Hasanat & charts
+      const { useAnalyticsStore } = await import('../../analytics/store/useAnalyticsStore');
+      useAnalyticsStore.getState().loadAnalytics();
     } catch (e) {
       console.error('Failed to persist habit toggle to DB', e);
       get().loadHabits();

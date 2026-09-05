@@ -108,24 +108,6 @@ export const HabitList: React.FC = () => {
         <Text style={styles.addBtnText}>+ Add a personal deed</Text>
       </TouchableOpacity>
 
-      {/* Glimpse / Teaser for the Next Streak Milestone (Blurred mystery teaser) */}
-      {nextMilestoneHabits.length > 0 && (
-        <View style={styles.lockedSection}>
-          <View style={styles.lockedHeader}>
-            <Text style={styles.lockedTitle}>NEXT MILESTONE UNLOCK</Text>
-            <Text style={styles.lockedSub}>Keep your daily streak going to unlock the next spiritual deed</Text>
-          </View>
-
-          {nextMilestoneHabits.map((habit) => (
-            <HabitItem
-              key={habit.id}
-              habit={habit}
-              onLongPress={(h) => setSelectedHabitToDelete(h)}
-            />
-          ))}
-        </View>
-      )}
-
       <AddHabitModal
         visible={modalVisible}
         onClose={() => setModalVisible(false)}
