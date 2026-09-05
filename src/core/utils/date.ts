@@ -39,4 +39,16 @@ export function formatHeaderDates(dateKey?: string, offsetDays: number = 0): { g
   return { gregorian, hijri };
 }
 
+export function shiftDate(dateKey: string, daysOffset: number): string {
+  const parts = dateKey.split('-');
+  if (parts.length !== 3) return dateKey;
+  const d = new Date(parseInt(parts[0], 10), parseInt(parts[1], 10) - 1, parseInt(parts[2], 10));
+  d.setDate(d.getDate() + daysOffset);
+  const year = d.getFullYear();
+  const month = String(d.getMonth() + 1).padStart(2, '0');
+  const day = String(d.getDate()).padStart(2, '0');
+  return `${year}-${month}-${day}`;
+}
+
+
 

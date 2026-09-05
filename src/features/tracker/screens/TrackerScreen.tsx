@@ -13,6 +13,7 @@ import { HistoryArchiveModal } from '../../reflection/components/HistoryArchiveM
 import { useTrackerStore } from '../store/useTrackerStore';
 import { useReflectionStore } from '../../reflection/store/useReflectionStore';
 import { THEME } from '../../../core/constants/theme';
+import { getTodayDateString } from '../../../core/utils/date';
 
 interface TrackerScreenProps {
   onNavigateToMuhasabah: () => void;
@@ -35,6 +36,9 @@ export const TrackerScreen: React.FC<TrackerScreenProps> = ({
 
   const [archiveVisible, setArchiveVisible] = useState(false);
 
+  const todayKey = getTodayDateString();
+  const isToday = selectedDate === todayKey;
+
   useEffect(() => {
     loadHabits();
   }, []);
@@ -42,6 +46,11 @@ export const TrackerScreen: React.FC<TrackerScreenProps> = ({
   const handleSelectDateFromArchive = async (dateKey: string) => {
     await setSelectedDate(dateKey);
     await loadReflection(dateKey);
+  };
+
+  const handleJumpToToday = async () => {
+    await setSelectedDate(todayKey);
+    await loadReflection(todayKey);
   };
 
   return (
@@ -58,14 +67,24 @@ export const TrackerScreen: React.FC<TrackerScreenProps> = ({
       {/* Streak & Daily Deeds Card */}
       <ProgressCard />
 
-      {/* Daily Log Date Strip & History Archive button */}
-      {/* <View style={styles.dateHeaderRow}>
-        <Text style={styles.sectionLabel}>DAILY LOG</Text>
-        <TouchableOpacity onPress={() => setArchiveVisible(true)} activeOpacity={0.7}>
-          <Text style={styles.historyLinkText}>Archive</Text>
-        </TouchableOpacity>
-      </View>
-      <DateStrip /> */}
+      {/* Past Day Viewing Notice Banner */}
+      {!isToday && (
+        <View style={styles.pastDayBanner}>
+          <View style={styles.bannerLeft}>
+            <Text style={styles.pastDayTitle}>Viewing Past Date</Text>
+            <Text style={styles.pastDaySub}>
+              Changes made here will update your past spiritual log and streak history.
+            </Text>
+          </View>
+          <TouchableOpacity
+            style={styles.returnTodayBtn}
+            onPress={handleJumpToToday}
+            activeOpacity={0.7}
+          >
+            <Text style={styles.returnTodayBtnText}>Go to Today</Text>
+          </TouchableOpacity>
+        </View>
+      )}
 
       {/* <NiyyahCard /> */}
       {/* <WisdomCard /> */}
@@ -124,25 +143,45 @@ const styles = StyleSheet.create({
     marginTop: 18,
     marginBottom: 24,
   },
+  pastDayBanner: {
+    backgroundColor: '#FFFBEB',
+    borderColor: '#FDE68A',
+    borderWidth: 1,
+    borderRadius: THEME.radius.md,
+    paddingVertical: 12,
+    paddingHorizontal: 16,
+    marginBottom: 16,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    gap: 12,
+  },
   bannerLeft: {
-    gap: 4,
+    flex: 1,
+    gap: 2,
   },
-  bannerTag: {
-    fontSize: 10,
-    fontWeight: '700',
-    color: THEME.colors.accentGold,
-    letterSpacing: 1.1,
-  },
-  bannerTitle: {
-    fontSize: 18,
-    fontWeight: '600',
-    color: THEME.colors.textHeading,
-    letterSpacing: -0.3,
-  },
-  bannerSub: {
+  pastDayTitle: {
     fontSize: 13,
-    color: THEME.colors.textMuted,
-    lineHeight: 18,
+    fontWeight: '700',
+    color: '#92400E',
+    marginBottom: 2,
+  },
+  pastDaySub: {
+    fontSize: 12,
+    color: '#B45309',
+    lineHeight: 16,
+  },
+  returnTodayBtn: {
+    backgroundColor: '#1E3A2F',
+    paddingHorizontal: 12,
+    paddingVertical: 8,
+    borderRadius: THEME.radius.sm,
+    alignSelf: 'center',
+  },
+  returnTodayBtnText: {
+    color: '#FFFFFF',
+    fontSize: 12,
+    fontWeight: '600',
   },
 });
 
