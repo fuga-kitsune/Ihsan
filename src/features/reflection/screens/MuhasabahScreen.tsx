@@ -262,6 +262,8 @@ const styles = StyleSheet.create({
     borderRadius: THEME.radius.lg,
     padding: 22,
     marginBottom: 24,
+    borderWidth: 1,
+    borderColor: '#ECEAE6',
   },
   sectionTag: {
     fontSize: 10,

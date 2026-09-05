@@ -97,6 +97,13 @@ const styles = StyleSheet.create({
     padding: 20,
     marginBottom: 24,
     gap: 12,
+    borderWidth: 1,
+    borderColor: '#EFE8DE',
+    shadowColor: '#78350F',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.04,
+    shadowRadius: 10,
+    elevation: 2,
   },
   topRow: {
     flexDirection: 'row',

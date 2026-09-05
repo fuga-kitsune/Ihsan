@@ -19,30 +19,35 @@ export const BottomNavBar: React.FC<BottomNavBarProps> = ({ currentTab, onSelect
     label: string;
     iconActive: keyof typeof Ionicons.glyphMap;
     iconInactive: keyof typeof Ionicons.glyphMap;
+    color: string;
   }[] = [
     {
       id: 'tracker',
       label: 'Tracker',
       iconActive: 'checkmark-circle',
       iconInactive: 'checkmark-circle-outline',
+      color: '#0284C7', // Vivid Ocean Blue
     },
     {
       id: 'duas',
       label: "Du'as",
       iconActive: 'book',
       iconInactive: 'book-outline',
+      color: '#0D9488', // Serene Teal / Turquoise
     },
     {
       id: 'analytics',
       label: 'Journey',
       iconActive: 'stats-chart',
       iconInactive: 'stats-chart-outline',
+      color: '#1E3A2F', // Forest Pine
     },
     {
       id: 'muhasabah',
       label: 'Muhasabah',
       iconActive: 'moon',
       iconInactive: 'moon-outline',
+      color: '#EAB308', // Warm Moon Yellow
     },
   ];
 
@@ -59,18 +64,18 @@ export const BottomNavBar: React.FC<BottomNavBarProps> = ({ currentTab, onSelect
         {tabs.map((tab) => {
           const isActive = currentTab === tab.id;
           const iconName = isActive ? tab.iconActive : tab.iconInactive;
-          const iconColor = isActive ? THEME.colors.primary : THEME.colors.textLight;
+          const iconColor = isActive ? tab.color : THEME.colors.textLight;
 
           return (
             <TouchableOpacity
               key={tab.id}
-              style={[styles.tabButton, isActive && styles.activeTabButton]}
+              style={styles.tabButton}
               onPress={() => onSelectTab(tab.id)}
               activeOpacity={0.7}
             >
               <Ionicons
                 name={iconName}
-                size={21}
+                size={22}
                 color={iconColor}
               />
               <Text style={[styles.tabLabel, isActive && styles.activeTabLabel]}>
@@ -105,29 +110,23 @@ const styles = StyleSheet.create({
   },
   navInner: {
     flexDirection: 'row',
-    justifyContent: 'space-around',
     alignItems: 'center',
+    width: '100%',
   },
   tabButton: {
+    flex: 1,
     alignItems: 'center',
     justifyContent: 'center',
     paddingVertical: 5,
-    paddingHorizontal: 12,
-    borderRadius: THEME.radius.md,
     gap: 3,
-    minWidth: 68,
-  },
-  activeTabButton: {
-    backgroundColor: THEME.colors.primarySoft,
   },
   tabLabel: {
     fontSize: 11,
-    fontWeight: '500',
+    fontWeight: '600',
     color: THEME.colors.textMuted,
     letterSpacing: -0.1,
   },
   activeTabLabel: {
-    color: THEME.colors.primary,
-    fontWeight: '700',
+    color: THEME.colors.textHeading,
   },
 });

@@ -159,6 +159,8 @@ const styles = StyleSheet.create({
     fontSize: 14,
     color: THEME.colors.textHeading,
     marginBottom: 16,
+    borderWidth: 1,
+    borderColor: '#ECEAE6',
   },
   catScroll: {
     gap: 8,

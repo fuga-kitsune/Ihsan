@@ -48,9 +48,12 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
+    borderWidth: 1,
+    borderColor: '#ECEAE6',
   },
   itemCompleted: {
     backgroundColor: THEME.colors.bgCardActive,
+    borderColor: '#D1EAE0',
   },
   leftCol: {
     flexDirection: 'row',

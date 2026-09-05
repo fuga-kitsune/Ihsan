@@ -143,6 +143,8 @@ const styles = StyleSheet.create({
     paddingHorizontal: 14,
     borderRadius: THEME.radius.md,
     backgroundColor: THEME.colors.bgCard,
+    borderWidth: 1,
+    borderColor: '#ECEAE6',
   },
   monthNavBtnDisabled: {
     opacity: 0.3,
@@ -171,7 +173,6 @@ const styles = StyleSheet.create({
     marginTop: 2,
   },
   statGrid: {
-
     flexDirection: 'row',
     gap: 10,
     marginBottom: 20,
@@ -184,6 +185,8 @@ const styles = StyleSheet.create({
     paddingHorizontal: 12,
     alignItems: 'center',
     gap: 4,
+    borderWidth: 1,
+    borderColor: '#ECEAE6',
   },
   statNum: {
     fontSize: 20,

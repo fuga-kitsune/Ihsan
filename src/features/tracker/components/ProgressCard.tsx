@@ -195,10 +195,17 @@ const styles = StyleSheet.create({
     backgroundColor: '#FEF3C7',
     borderColor: '#FDE68A',
     minHeight: 118,
+    shadowColor: '#F59E0B',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.12,
+    shadowRadius: 8,
+    elevation: 2,
   },
   streakTileLocked: {
     backgroundColor: '#E6F4EA', // App theme primarySoft green
     borderColor: '#C2E7D0', // Subtle 1px green border matching theme
+    shadowColor: THEME.colors.primary,
+    shadowOpacity: 0.1,
   },
   streakTopRow: {
     flexDirection: 'row',
@@ -262,6 +269,11 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: '#ECEAE6',
     minHeight: 118,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.04,
+    shadowRadius: 8,
+    elevation: 1,
   },
   goalHeader: {
     flexDirection: 'row',

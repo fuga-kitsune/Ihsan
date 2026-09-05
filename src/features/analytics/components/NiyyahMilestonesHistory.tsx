@@ -77,6 +77,8 @@ const styles = StyleSheet.create({
     borderRadius: THEME.radius.lg,
     padding: 20,
     marginBottom: 20,
+    borderWidth: 1,
+    borderColor: '#ECEAE6',
   },
   tag: {
     fontSize: 10,

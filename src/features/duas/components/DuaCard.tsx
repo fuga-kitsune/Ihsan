@@ -76,6 +76,8 @@ const styles = StyleSheet.create({
     padding: 22,
     marginBottom: 16,
     gap: 12,
+    borderWidth: 1,
+    borderColor: '#ECEAE6',
   },
   header: {
     flexDirection: 'row',

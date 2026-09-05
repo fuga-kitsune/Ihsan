@@ -58,7 +58,9 @@ const styles = StyleSheet.create({
     backgroundColor: THEME.colors.bgCard,
     borderRadius: THEME.radius.lg,
     padding: 20,
-    marginBottom: 20,
+    marginBottom: 24,
+    borderWidth: 1,
+    borderColor: '#ECEAE6',
   },
   headerRow: {
     flexDirection: 'row',
