@@ -28,9 +28,9 @@ export const Header: React.FC<HeaderProps> = ({ onOpenSettings }) => {
       <Text style={styles.title}>
         Grow your soul in <Text style={styles.italicAccent}>devotion.</Text>
       </Text>
-      <Text style={styles.subtitle}>
+      {/* <Text style={styles.subtitle}>
         Every small deed today builds your steadfastness and peace.
-      </Text>
+      </Text> */}
     </View>
   );
 };

@@ -41,14 +41,7 @@ export const DuaLibraryScreen: React.FC<DuaLibraryScreenProps> = ({ onBack }) =>
       ]}
       showsVerticalScrollIndicator={false}
     >
-      {/* Top Nav */}
-      <View style={styles.topNav}>
-        <TouchableOpacity style={styles.backBtn} onPress={onBack} activeOpacity={0.7}>
-          <Text style={styles.backBtnText}>← Back</Text>
-        </TouchableOpacity>
-        <Text style={styles.navTitle}>Du'a Library</Text>
-        <View style={{ width: 60 }} />
-      </View>
+
 
       {/* Header */}
       <View style={styles.headerSection}>

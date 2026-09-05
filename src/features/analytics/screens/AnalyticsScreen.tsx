@@ -41,14 +41,7 @@ export const AnalyticsScreen: React.FC<AnalyticsScreenProps> = ({ onBack }) => {
       ]}
       showsVerticalScrollIndicator={false}
     >
-      {/* Top Nav */}
-      <View style={styles.topNav}>
-        <TouchableOpacity style={styles.backBtn} onPress={onBack} activeOpacity={0.7}>
-          <Text style={styles.backBtnText}>← Back</Text>
-        </TouchableOpacity>
-        <Text style={styles.navTitle}>Spiritual Journey</Text>
-        <View style={{ width: 60 }} />
-      </View>
+
 
       {/* Month Switcher Header */}
       <View style={styles.monthHeaderRow}>

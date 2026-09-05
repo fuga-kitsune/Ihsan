@@ -1,6 +1,6 @@
 {
   "expo": {
-    "name": "ihsan",
+    "name": "Ihsan",
     "slug": "ihsan",
     "version": "1.0.1",
     "orientation": "portrait",
@@ -21,7 +21,7 @@
       [
         "expo-splash-screen",
         {
-          "backgroundColor": "#208AEF",
+          "backgroundColor": "#FAFAF9",
           "image": "./assets/splash-icon.png",
           "imageWidth": 76
         }

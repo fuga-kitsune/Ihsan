@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from 'react';
 import { BackHandler, Platform, StatusBar, StyleSheet, ToastAndroid, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { BottomNavBar, ScreenTab } from '../core/components/BottomNavBar';
 import { THEME } from '../core/constants/theme';
 import { AnalyticsScreen } from '../features/analytics/screens/AnalyticsScreen';
 import { DuaLibraryScreen } from '../features/duas/screens/DuaLibraryScreen';
@@ -60,28 +61,38 @@ export default function RootApp() {
     return <OnboardingScreen onFinish={() => setCurrentScreen('tracker')} />;
   }
 
+  const isMainTab = currentScreen !== 'settings';
+
   return (
     <View style={[styles.canvas, { paddingTop: insets.top }]}>
       <StatusBar barStyle="dark-content" backgroundColor={THEME.colors.bgCanvas} />
-      {currentScreen === 'tracker' && (
-        <TrackerScreen
-          onNavigateToMuhasabah={() => setCurrentScreen('muhasabah')}
-          onOpenSettings={() => setCurrentScreen('settings')}
-          onOpenAnalytics={() => setCurrentScreen('analytics')}
-          onOpenDuas={() => setCurrentScreen('duas')}
+      <View style={styles.mainContent}>
+        {currentScreen === 'tracker' && (
+          <TrackerScreen
+            onNavigateToMuhasabah={() => setCurrentScreen('muhasabah')}
+            onOpenSettings={() => setCurrentScreen('settings')}
+            onOpenAnalytics={() => setCurrentScreen('analytics')}
+            onOpenDuas={() => setCurrentScreen('duas')}
+          />
+        )}
+        {currentScreen === 'muhasabah' && (
+          <MuhasabahScreen onBack={() => setCurrentScreen('tracker')} />
+        )}
+        {currentScreen === 'settings' && (
+          <SettingsScreen onBack={() => setCurrentScreen('tracker')} />
+        )}
+        {currentScreen === 'analytics' && (
+          <AnalyticsScreen onBack={() => setCurrentScreen('tracker')} />
+        )}
+        {currentScreen === 'duas' && (
+          <DuaLibraryScreen onBack={() => setCurrentScreen('tracker')} />
+        )}
+      </View>
+      {isMainTab && (
+        <BottomNavBar
+          currentTab={currentScreen as ScreenTab}
+          onSelectTab={(tab) => setCurrentScreen(tab)}
         />
-      )}
-      {currentScreen === 'muhasabah' && (
-        <MuhasabahScreen onBack={() => setCurrentScreen('tracker')} />
-      )}
-      {currentScreen === 'settings' && (
-        <SettingsScreen onBack={() => setCurrentScreen('tracker')} />
-      )}
-      {currentScreen === 'analytics' && (
-        <AnalyticsScreen onBack={() => setCurrentScreen('tracker')} />
-      )}
-      {currentScreen === 'duas' && (
-        <DuaLibraryScreen onBack={() => setCurrentScreen('tracker')} />
       )}
     </View>
   );
@@ -91,6 +102,9 @@ const styles = StyleSheet.create({
   canvas: {
     flex: 1,
     backgroundColor: THEME.colors.bgCanvas,
+  },
+  mainContent: {
+    flex: 1,
   },
 });
 

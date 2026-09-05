@@ -58,40 +58,17 @@ export const TrackerScreen: React.FC<TrackerScreenProps> = ({
       {/* Date Strip & History Archive button */}
       <View style={styles.dateHeaderRow}>
         <Text style={styles.sectionLabel}>DAILY LOG</Text>
-        <View style={styles.headerLinks}>
-          <TouchableOpacity onPress={onOpenDuas} activeOpacity={0.7}>
-            <Text style={styles.historyLinkText}>Du'as</Text>
-          </TouchableOpacity>
-          <Text style={styles.linkDivider}>•</Text>
-          <TouchableOpacity onPress={onOpenAnalytics} activeOpacity={0.7}>
-            <Text style={styles.historyLinkText}>Journey</Text>
-          </TouchableOpacity>
-          <Text style={styles.linkDivider}>•</Text>
-          <TouchableOpacity onPress={() => setArchiveVisible(true)} activeOpacity={0.7}>
-            <Text style={styles.historyLinkText}>Archive</Text>
-          </TouchableOpacity>
-        </View>
+        <TouchableOpacity onPress={() => setArchiveVisible(true)} activeOpacity={0.7}>
+          <Text style={styles.historyLinkText}>Archive</Text>
+        </TouchableOpacity>
       </View>
       <DateStrip />
 
       <ProgressCard />
       <NiyyahCard />
-      <WisdomCard />
+      {/* <WisdomCard /> */}
       <CategoryTabs />
       <HabitList />
-
-      {/* Navigation Banner to Evening Muhasabah */}
-      <TouchableOpacity
-        style={styles.muhasabahBanner}
-        onPress={onNavigateToMuhasabah}
-        activeOpacity={0.8}
-      >
-        <View style={styles.bannerLeft}>
-          <Text style={styles.bannerTag}>EVENING MUHASABAH</Text>
-          <Text style={styles.bannerTitle}>Spiritual Check-In & Journal →</Text>
-          <Text style={styles.bannerSub}>Reflect on heart state and deeds for {selectedDate}.</Text>
-        </View>
-      </TouchableOpacity>
 
       <HistoryArchiveModal
         visible={archiveVisible}

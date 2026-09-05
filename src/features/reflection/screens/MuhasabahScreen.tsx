@@ -108,13 +108,13 @@ export const MuhasabahScreen: React.FC<MuhasabahScreenProps> = ({ onBack }) => {
         keyboardShouldPersistTaps="handled"
         showsVerticalScrollIndicator={false}
       >
-        {/* Top Navigation */}
-        <View style={styles.topNav}>
-          <TouchableOpacity style={styles.backBtn} onPress={onBack} activeOpacity={0.7}>
-            <Text style={styles.backBtnText}>← Back to Habits</Text>
-          </TouchableOpacity>
-          {isSavedVisible && <Text style={styles.savedPill}>Saved to Journal</Text>}
-        </View>
+        {/* Top Status */}
+        {isSavedVisible && (
+          <View style={styles.topNav}>
+            <View />
+            <Text style={styles.savedPill}>Saved to Journal</Text>
+          </View>
+        )}
 
         {/* Header - Always seen first */}
         <View style={styles.headerSection}>
