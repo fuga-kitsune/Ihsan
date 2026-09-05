@@ -1,0 +1,43 @@
+import React from 'react';
+import Svg, { Path } from 'react-native-svg';
+
+interface StreamlineFireIconProps {
+  size?: number;
+}
+
+export const StreamlineFireIcon: React.FC<StreamlineFireIconProps> = ({ size = 32 }) => {
+  return (
+    <Svg width={size} height={size} viewBox="0 0 48 48" fill="none">
+      {/* Base shadow */}
+      <Path
+        d="M12.500 45.500 A11.5 1.5 0 1 0 35.500 45.500 A11.5 1.5 0 1 0 12.500 45.500 Z"
+        fill="#45413c"
+        opacity={0.15}
+      />
+      {/* Left flame tongue */}
+      <Path
+        d="M14.44,30.61c.76-2.36-1.79-6.71,3.43-8.61-.82,4.86,5.94,6.25,4.4,11.1Z"
+        fill="#ff6242"
+        stroke="#45413c"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+      {/* Main flame body */}
+      <Path
+        d="M33.5,12.5c.9,2.49.61,3.94-.5,5C27.92,14.3,21.86,12,20.88,5,10.5,13,26,24,18.5,27c-3.71,1.49-7-2-6.5-5.91A11.07,11.07,0,0,0,8.5,29c0,6.9,6.94,12.5,15.5,12.5C43.6,41.5,42,15.5,33.5,12.5Z"
+        fill="#ff6242"
+        stroke="#45413c"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+      {/* Yellow inner flame highlight */}
+      <Path
+        d="M31,28c-1.5,4.5-5.52,6.29-9.09,6.48a5,5,0,0,0,4.59,3C32.12,37.5,36,31.5,31,28Z"
+        fill="#ffe500"
+        stroke="#45413c"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+    </Svg>
+  );
+};

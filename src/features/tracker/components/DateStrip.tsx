@@ -6,15 +6,16 @@ import { THEME } from '../../../core/constants/theme';
 import { getTodayDateString } from '../../../core/utils/date';
 
 export const DateStrip: React.FC = () => {
+  const scrollViewRef = React.useRef<ScrollView>(null);
   const selectedDate = useTrackerStore((state) => state.selectedDate);
   const setSelectedDate = useTrackerStore((state) => state.setSelectedDate);
   const loadReflection = useReflectionStore((state) => state.loadReflection);
 
   const todayKey = getTodayDateString();
 
-  // Generate last 10 days
+  // Generate last 10 days in chronological order: past days on left, Today on right
   const days = [];
-  for (let i = 0; i < 10; i++) {
+  for (let i = 9; i >= 0; i--) {
     const d = new Date();
     d.setDate(d.getDate() - i);
     const year = d.getFullYear();
@@ -28,6 +29,13 @@ export const DateStrip: React.FC = () => {
     days.push({ dateKey, dayName, dayNumber, isToday: i === 0 });
   }
 
+  React.useEffect(() => {
+    // Automatically focus on Today (right side) on initial load
+    setTimeout(() => {
+      scrollViewRef.current?.scrollToEnd({ animated: false });
+    }, 100);
+  }, []);
+
   const handleDateSelect = async (dateKey: string) => {
     await setSelectedDate(dateKey);
     await loadReflection(dateKey);
@@ -36,6 +44,7 @@ export const DateStrip: React.FC = () => {
   return (
     <View style={styles.container}>
       <ScrollView
+        ref={scrollViewRef}
         horizontal
         showsHorizontalScrollIndicator={false}
         contentContainerStyle={styles.scrollList}
@@ -90,7 +99,8 @@ const styles = StyleSheet.create({
     color: THEME.colors.textMuted,
   },
   dayLabelActive: {
-    color: 'rgba(255, 255, 255, 0.8)',
+    color: THEME.colors.textInverse,
+    fontWeight: '600',
   },
   dayNumber: {
     fontSize: 16,
@@ -98,15 +108,16 @@ const styles = StyleSheet.create({
     color: THEME.colors.textHeading,
   },
   dayNumberActive: {
-    color: '#FFFFFF',
+    color: THEME.colors.textInverse,
   },
   todayDot: {
     width: 4,
     height: 4,
     borderRadius: 2,
-    backgroundColor: THEME.colors.accentGold,
+    backgroundColor: THEME.colors.primary,
+    marginTop: 2,
   },
   todayDotActive: {
-    backgroundColor: '#FFFFFF',
+    backgroundColor: THEME.colors.textInverse,
   },
 });
