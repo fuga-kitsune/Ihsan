@@ -1,0 +1,122 @@
+export type QuestCategory = 'all' | 'weekly' | 'monthly' | 'sunnah';
+
+export interface SpiritualQuest {
+  id: string;
+  title: string;
+  category: QuestCategory;
+  period: 'Weekly' | 'Monthly' | 'Special';
+  description: string;
+  benefit: string;
+  targetCount: number;
+  currentCount: number;
+  isCompleted: boolean;
+  unit: string;
+  iconName: string;
+}
+
+export const INITIAL_QUESTS: SpiritualQuest[] = [
+  {
+    id: 'quest_kahf',
+    title: 'Surah Al-Kahf',
+    category: 'weekly',
+    period: 'Weekly',
+    description: 'Light between two Fridays',
+    benefit: '',
+    targetCount: 1,
+    currentCount: 0,
+    isCompleted: false,
+    unit: 'time',
+    iconName: 'book',
+  },
+  {
+    id: 'quest_salawat',
+    title: '1,000 Salawat',
+    category: 'weekly',
+    period: 'Weekly',
+    description: 'Send blessings upon the Prophet ﷺ',
+    benefit: '',
+    targetCount: 1000,
+    currentCount: 0,
+    isCompleted: false,
+    unit: 'times',
+    iconName: 'star',
+  },
+  {
+    id: 'quest_parents',
+    title: 'Honor Parents / Send a Gift',
+    category: 'weekly',
+    period: 'Weekly',
+    description: 'Call, speak gently, or give a gift',
+    benefit: '',
+    targetCount: 2,
+    currentCount: 0,
+    isCompleted: false,
+    unit: 'times',
+    iconName: 'heart',
+  },
+  {
+    id: 'quest_tahajjud',
+    title: 'Night Prayer (Tahajjud)',
+    category: 'weekly',
+    period: 'Weekly',
+    description: 'Two nights of Qiyam al-Layl',
+    benefit: '',
+    targetCount: 2,
+    currentCount: 0,
+    isCompleted: false,
+    unit: 'nights',
+    iconName: 'moon',
+  },
+  {
+    id: 'quest_fasting',
+    title: 'Fast Mon & Thu',
+    category: 'weekly',
+    period: 'Weekly',
+    description: 'Sunnah fasting days',
+    benefit: '',
+    targetCount: 2,
+    currentCount: 0,
+    isCompleted: false,
+    unit: 'days',
+    iconName: 'sparkles',
+  },
+  {
+    id: 'quest_rawatib',
+    title: '12 Sunnah Rawatib',
+    category: 'weekly',
+    period: 'Weekly',
+    description: 'Daily established sunnah prayers',
+    benefit: '',
+    targetCount: 12,
+    currentCount: 0,
+    isCompleted: false,
+    unit: 'prayers',
+    iconName: 'sparkles',
+  },
+  {
+    id: 'quest_dhuha',
+    title: 'Salatul Dhuha',
+    category: 'weekly',
+    period: 'Weekly',
+    description: 'Morning charity for every joint',
+    benefit: '',
+    targetCount: 4,
+    currentCount: 0,
+    isCompleted: false,
+    unit: 'days',
+    iconName: 'sun',
+  },
+  {
+    id: 'quest_tongue',
+    title: 'Guard the Tongue',
+    category: 'weekly',
+    period: 'Weekly',
+    description: 'No backbiting or harsh speech',
+    benefit: '',
+    targetCount: 3,
+    currentCount: 0,
+    isCompleted: false,
+    unit: 'days',
+    iconName: 'shield',
+  },
+];

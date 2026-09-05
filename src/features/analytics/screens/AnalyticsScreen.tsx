@@ -19,7 +19,7 @@ export const AnalyticsScreen: React.FC<AnalyticsScreenProps> = ({ onBack }) => {
   const [data, setData] = useState<AnalyticsSummary | null>(null);
 
   const allNiyyahs = useNiyyahStore((state) => state.allNiyyahs);
-  const loadAllNiyyahs = useNiyyahStore((state) => state.loadAllNiyyahs);
+  const loadNiyyahAndQuests = useNiyyahStore((state) => state.loadNiyyahAndQuests);
 
   const loadData = (offset: number) => {
     analyticsRepository.getAnalyticsSummary(offset).then(setData);
@@ -27,7 +27,7 @@ export const AnalyticsScreen: React.FC<AnalyticsScreenProps> = ({ onBack }) => {
 
   useEffect(() => {
     loadData(monthOffset);
-    loadAllNiyyahs();
+    loadNiyyahAndQuests();
   }, [monthOffset]);
 
   if (!data) return null;

@@ -21,10 +21,19 @@ export class NiyyahRepository {
     } catch { }
   }
 
-  async getActiveNiyyah(): Promise<NiyyahItem | null> {
+  async getActiveNiyyahs(timeframe?: NiyyahTimeframe): Promise<NiyyahItem[]> {
     await this.initNiyyahTable();
     const db = await getDatabase();
-    const row = await db.getFirstAsync<{
+    let query = 'SELECT * FROM niyyahs WHERE is_completed = 0';
+    const params: any[] = [];
+
+    if (timeframe) {
+      query += ' AND timeframe = ?';
+      params.push(timeframe);
+    }
+    query += ' ORDER BY created_at DESC LIMIT 3';
+
+    const rows = await db.getAllAsync<{
       id: string;
       title: string;
       timeframe: string;
@@ -33,11 +42,9 @@ export class NiyyahRepository {
       is_completed: number;
       created_at: number;
       completed_at?: number | null;
-    }>('SELECT * FROM niyyahs ORDER BY created_at DESC LIMIT 1');
+    }>(query, params);
 
-    if (!row) return null;
-
-    return {
+    return rows.map((row) => ({
       id: row.id,
       title: row.title,
       timeframe: row.timeframe as NiyyahTimeframe,
@@ -46,7 +53,12 @@ export class NiyyahRepository {
       isCompleted: row.is_completed === 1,
       createdAt: row.created_at,
       completedAt: row.completed_at,
-    };
+    }));
+  }
+
+  async getActiveNiyyah(timeframe?: NiyyahTimeframe): Promise<NiyyahItem | null> {
+    const activeList = await this.getActiveNiyyahs(timeframe);
+    return activeList.length > 0 ? activeList[0] : null;
   }
 
   async getAllNiyyahs(): Promise<NiyyahItem[]> {
@@ -75,35 +87,23 @@ export class NiyyahRepository {
     }));
   }
 
-  async setNiyyah(title: string, timeframe: NiyyahTimeframe, category: string = 'General'): Promise<NiyyahItem> {
+  async setNiyyah(title: string, timeframe: NiyyahTimeframe, category: string = 'General'): Promise<NiyyahItem | null> {
     await this.initNiyyahTable();
     const db = await getDatabase();
 
-    // Check if there is an active in-progress niyyah
-    const active = await db.getFirstAsync<{ id: string; created_at: number }>(
-      'SELECT id, created_at FROM niyyahs WHERE is_completed = 0 ORDER BY created_at DESC LIMIT 1'
+    // Check count of active uncompleted goals in this timeframe
+    const countRow = await db.getFirstAsync<{ count: number }>(
+      'SELECT COUNT(*) as count FROM niyyahs WHERE is_completed = 0 AND timeframe = ?',
+      [timeframe]
     );
 
-    if (active) {
-      // UPDATE the current in-progress Niyyah so it does not spam duplicates
-      await db.runAsync(
-        'UPDATE niyyahs SET title = ?, timeframe = ?, category = ? WHERE id = ?',
-        [title, timeframe, category, active.id]
-      );
-      return {
-        id: active.id,
-        title,
-        timeframe,
-        category,
-        targetDate: '',
-        isCompleted: false,
-        createdAt: active.created_at,
-        completedAt: null,
-      };
+    if (countRow && countRow.count >= 3) {
+      // Cannot add more than 3 active goals
+      return null;
     }
 
-    // Otherwise create new Niyyah entry
-    const id = `niyyah_${Date.now()}`;
+    // Create new Niyyah entry
+    const id = `niyyah_${Date.now()}_${Math.random().toString(36).substr(2, 4)}`;
     const now = Date.now();
 
     await db.runAsync(
@@ -123,6 +123,10 @@ export class NiyyahRepository {
     };
   }
 
+  async deleteNiyyah(id: string): Promise<void> {
+    const db = await getDatabase();
+    await db.runAsync('DELETE FROM niyyahs WHERE id = ?', [id]);
+  }
 
   async toggleNiyyahComplete(id: string, currentStatus: boolean): Promise<{ isCompleted: boolean; completedAt: number | null }> {
     const db = await getDatabase();

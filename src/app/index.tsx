@@ -4,7 +4,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { BottomNavBar, ScreenTab } from '../core/components/BottomNavBar';
 import { THEME } from '../core/constants/theme';
 import { AnalyticsScreen } from '../features/analytics/screens/AnalyticsScreen';
-import { DuaLibraryScreen } from '../features/duas/screens/DuaLibraryScreen';
+import { FocusHubScreen } from '../features/niyyah/screens/FocusHubScreen';
 import { OnboardingScreen } from '../features/onboarding/screens/OnboardingScreen';
 import { MuhasabahScreen } from '../features/reflection/screens/MuhasabahScreen';
 import { SettingsScreen } from '../features/settings/screens/SettingsScreen';
@@ -15,7 +15,7 @@ import { TrackerScreen } from '../features/tracker/screens/TrackerScreen';
 export default function RootApp() {
   const insets = useSafeAreaInsets();
   const [showSplash, setShowSplash] = useState(true);
-  const [currentScreen, setCurrentScreen] = useState<'tracker' | 'muhasabah' | 'settings' | 'analytics' | 'duas'>('tracker');
+  const [currentScreen, setCurrentScreen] = useState<'tracker' | 'muhasabah' | 'settings' | 'analytics' | 'focus'>('tracker');
   const lastBackPressRef = useRef<number>(0);
   const settings = useSettingsStore((state) => state.settings);
   const isLoading = useSettingsStore((state) => state.isLoading);
@@ -72,7 +72,7 @@ export default function RootApp() {
             onNavigateToMuhasabah={() => setCurrentScreen('muhasabah')}
             onOpenSettings={() => setCurrentScreen('settings')}
             onOpenAnalytics={() => setCurrentScreen('analytics')}
-            onOpenDuas={() => setCurrentScreen('duas')}
+            onOpenDuas={() => setCurrentScreen('focus')}
           />
         )}
         {currentScreen === 'muhasabah' && (
@@ -84,8 +84,8 @@ export default function RootApp() {
         {currentScreen === 'analytics' && (
           <AnalyticsScreen onBack={() => setCurrentScreen('tracker')} />
         )}
-        {currentScreen === 'duas' && (
-          <DuaLibraryScreen onBack={() => setCurrentScreen('tracker')} />
+        {currentScreen === 'focus' && (
+          <FocusHubScreen />
         )}
       </View>
       {isMainTab && (

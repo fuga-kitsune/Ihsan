@@ -7,6 +7,7 @@ export interface HabitEntity {
   benefit: string;
   tag: string;
   sort_order: number;
+  required_streak?: number;
 }
 
 export interface HabitItemUIModel {
@@ -17,6 +18,8 @@ export interface HabitItemUIModel {
   tag: string;
   isCompleted: boolean;
   sortOrder?: number;
+  requiredStreak?: number;
+  isLocked?: boolean;
 }
 
 export interface TrackerStatsUIModel {

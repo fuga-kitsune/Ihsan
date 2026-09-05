@@ -49,11 +49,12 @@ export const useTrackerStore = create<TrackerState>((set, get) => ({
     set({ isLoading: true });
 
     try {
-      const items = await habitRepository.getHabitsForDate(targetDate);
       const streak = await habitRepository.calculateStreak();
+      const items = await habitRepository.getHabitsForDate(targetDate, streak);
       const weeklyCompletion = await habitRepository.getWeeklyCompletionStatus();
-      const completedCount = items.filter((h) => h.isCompleted).length;
-      const totalCount = items.length;
+      const activeItems = items.filter((h) => !h.isLocked);
+      const completedCount = activeItems.filter((h) => h.isCompleted).length;
+      const totalCount = activeItems.length;
       const percentage = totalCount > 0 ? Math.round((completedCount / totalCount) * 100) : 0;
 
       set({

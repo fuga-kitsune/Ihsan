@@ -3,11 +3,11 @@ import { View, Text, TouchableOpacity, StyleSheet, Platform } from 'react-native
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { THEME } from '../constants/theme';
 import { StreamlineDeedsIcon } from './StreamlineDeedsIcon';
-import { StreamlineBookIcon } from './StreamlineBookIcon';
+import { StreamlineTargetIcon } from './StreamlineTargetIcon';
 import { StreamlineChartIcon } from './StreamlineChartIcon';
 import { StreamlineMoonIcon } from './StreamlineMoonIcon';
 
-export type ScreenTab = 'tracker' | 'duas' | 'analytics' | 'muhasabah';
+export type ScreenTab = 'tracker' | 'focus' | 'analytics' | 'muhasabah';
 
 interface BottomNavBarProps {
   currentTab: ScreenTab;
@@ -21,8 +21,8 @@ export const BottomNavBar: React.FC<BottomNavBarProps> = ({ currentTab, onSelect
     switch (id) {
       case 'tracker':
         return <StreamlineDeedsIcon size={24} focused={isActive} />;
-      case 'duas':
-        return <StreamlineBookIcon size={24} focused={isActive} />;
+      case 'focus':
+        return <StreamlineTargetIcon size={24} focused={isActive} />;
       case 'analytics':
         return <StreamlineChartIcon size={24} focused={isActive} />;
       case 'muhasabah':
@@ -41,8 +41,8 @@ export const BottomNavBar: React.FC<BottomNavBarProps> = ({ currentTab, onSelect
       label: 'Deeds',
     },
     {
-      id: 'duas',
-      label: "Du'as",
+      id: 'focus',
+      label: 'Focus',
     },
     {
       id: 'analytics',

@@ -11,10 +11,43 @@ interface HabitItemProps {
 
 export const HabitItem: React.FC<HabitItemProps> = ({ habit, onLongPress }) => {
   const toggleHabit = useTrackerStore((state) => state.toggleHabit);
+  const currentStreak = useTrackerStore((state) => state.stats.streak);
+
+  // A habit is "NEW" for 2 days after unlocking (e.g. required 2 -> streak 2 or 3)
+  const isNewlyUnlocked =
+    (habit.requiredStreak ?? 0) > 0 &&
+    !habit.isLocked &&
+    currentStreak >= (habit.requiredStreak ?? 0) &&
+    currentStreak <= (habit.requiredStreak ?? 0) + 2;
+
+  if (habit.isLocked) {
+    return (
+      <View style={[styles.item, styles.itemLocked]}>
+        <View style={styles.leftCol}>
+          <View style={styles.lockIconBox}>
+            <Text style={styles.lockIconText}>🔒</Text>
+          </View>
+          <View style={styles.textCol}>
+            <View style={styles.nameRow}>
+              <Text style={styles.nameLocked}>{habit.name}</Text>
+              <View style={styles.streakBadge}>
+                <Text style={styles.streakBadgeText}>Unlocks at {habit.requiredStreak}-day streak</Text>
+              </View>
+            </View>
+            <Text style={styles.benefitLocked}>{habit.benefit}</Text>
+          </View>
+        </View>
+      </View>
+    );
+  }
 
   return (
     <TouchableOpacity
-      style={[styles.item, habit.isCompleted && styles.itemCompleted]}
+      style={[
+        styles.item,
+        isNewlyUnlocked && styles.itemNewlyUnlocked,
+        habit.isCompleted && styles.itemCompleted,
+      ]}
       onPress={() => toggleHabit(habit.id)}
       onLongPress={() => onLongPress?.(habit)}
       delayLongPress={350}
@@ -25,18 +58,22 @@ export const HabitItem: React.FC<HabitItemProps> = ({ habit, onLongPress }) => {
           {habit.isCompleted && <View style={styles.radioInner} />}
         </View>
         <View style={styles.textCol}>
-          <Text style={[styles.name, habit.isCompleted && styles.nameCompleted]}>
-            {habit.name}
-          </Text>
+          <View style={styles.nameRow}>
+            <Text style={[styles.name, habit.isCompleted && styles.nameCompleted]}>
+              {habit.name}
+            </Text>
+            {isNewlyUnlocked && (
+              <View style={styles.newBadgeRed}>
+                <Text style={styles.newBadgeRedText}>NEW</Text>
+              </View>
+            )}
+          </View>
           <Text style={styles.benefit}>{habit.benefit}</Text>
         </View>
       </View>
     </TouchableOpacity>
   );
 };
-
-
-
 
 const styles = StyleSheet.create({
   item: {
@@ -50,6 +87,10 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     borderWidth: 1,
     borderColor: '#ECEAE6',
+  },
+  itemNewlyUnlocked: {
+    backgroundColor: '#FFF8F6',
+    borderColor: '#FED7D7',
   },
   itemCompleted: {
     backgroundColor: THEME.colors.bgCardActive,
@@ -97,5 +138,61 @@ const styles = StyleSheet.create({
     fontSize: 13,
     marginTop: 2,
     fontWeight: '400',
+  },
+  itemLocked: {
+    backgroundColor: '#F9F8F6',
+    borderColor: '#ECEAE6',
+    opacity: 0.75,
+  },
+  lockIconBox: {
+    width: 24,
+    height: 24,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  lockIconText: {
+    fontSize: 14,
+  },
+  nameRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    gap: 8,
+    flexWrap: 'wrap',
+  },
+  nameLocked: {
+    color: THEME.colors.textMuted,
+    fontSize: 15,
+    fontWeight: '500',
+  },
+  streakBadge: {
+    backgroundColor: '#FEF3C7',
+    paddingHorizontal: 8,
+    paddingVertical: 2,
+    borderRadius: THEME.radius.full,
+  },
+  streakBadgeText: {
+    fontSize: 10,
+    fontWeight: '700',
+    color: '#B45309',
+  },
+  newBadgeRed: {
+    backgroundColor: '#FEE2E2',
+    paddingHorizontal: 7,
+    paddingVertical: 2,
+    borderRadius: THEME.radius.full,
+    borderWidth: 1,
+    borderColor: '#FECACA',
+  },
+  newBadgeRedText: {
+    fontSize: 9,
+    fontWeight: '800',
+    color: '#DC2626',
+    letterSpacing: 0.6,
+  },
+  benefitLocked: {
+    color: THEME.colors.textLight,
+    fontSize: 12,
+    marginTop: 2,
   },
 });

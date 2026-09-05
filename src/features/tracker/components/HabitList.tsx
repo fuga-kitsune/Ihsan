@@ -17,13 +17,13 @@ export const HabitList: React.FC = () => {
   const [modalVisible, setModalVisible] = useState(false);
   const [selectedHabitToDelete, setSelectedHabitToDelete] = useState<HabitItemUIModel | null>(null);
 
-  // Maintain local displayed list to allow graceful delay before reordering
-  const [displayHabits, setDisplayHabits] = useState<HabitItemUIModel[]>(habits);
-  const reorderTimerRef = React.useRef<NodeJS.Timeout | null>(null);
-
   // Helper function to sort habits
   const sortHabits = (list: HabitItemUIModel[]) => {
     return [...list].sort((a, b) => {
+      // Locked items always at the bottom
+      if (a.isLocked !== b.isLocked) {
+        return a.isLocked ? 1 : -1;
+      }
       if (a.isCompleted !== b.isCompleted) {
         return a.isCompleted ? 1 : -1;
       }
@@ -31,28 +31,36 @@ export const HabitList: React.FC = () => {
     });
   };
 
+  // Maintain local displayed list pre-sorted
+  const [displayHabits, setDisplayHabits] = useState<HabitItemUIModel[]>(() => sortHabits(habits));
+  const reorderTimerRef = React.useRef<ReturnType<typeof setTimeout> | null>(null);
+
   React.useEffect(() => {
     if (reorderTimerRef.current) {
       clearTimeout(reorderTimerRef.current);
     }
 
+    // Check if the update is just a completion toggle on the same set of habits
+    const isSameSet =
+      displayHabits.length === habits.length &&
+      displayHabits.every((d) => habits.some((h) => h.id === d.id));
+
+    if (!isSameSet) {
+      // Screen loaded or date/tab switched: set properly sorted list immediately
+      setDisplayHabits(sortHabits(habits));
+      return;
+    }
+
     const habitsMap = new Map(habits.map((h) => [h.id, h]));
 
-    // Instantly update the item completion status IN PLACE preserving current display order
-    setDisplayHabits((prev) => {
-      // If count changed or initial empty, initialize sorted
-      if (prev.length !== habits.length || prev.length === 0) {
-        return sortHabits(habits);
-      }
-      // Preserve exact order from previous state and just update values (e.g. isCompleted)
-      return prev.map((item) => habitsMap.get(item.id) || item);
-    });
+    // Update the item completion status IN PLACE for immediate tap feedback
+    setDisplayHabits((prev) => prev.map((item) => habitsMap.get(item.id) || item));
 
-    // Graceful 450ms delay before animating the newly toggled item to bottom / top
+    // Graceful 400ms delay before animating the newly toggled item to bottom / top
     reorderTimerRef.current = setTimeout(() => {
       LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);
       setDisplayHabits(sortHabits(habits));
-    }, 450);
+    }, 400);
 
     return () => {
       if (reorderTimerRef.current) {
@@ -66,9 +74,13 @@ export const HabitList: React.FC = () => {
     return h.category === activeCategory;
   });
 
+  const unlockedHabits = filteredHabits.filter((h) => !h.isLocked);
+  const lockedHabits = filteredHabits.filter((h) => h.isLocked);
+
   return (
     <View style={styles.container}>
-      {filteredHabits.map((habit) => (
+      {/* Active Unlocked Deeds */}
+      {unlockedHabits.map((habit) => (
         <HabitItem
           key={habit.id}
           habit={habit}
@@ -83,6 +95,24 @@ export const HabitList: React.FC = () => {
       >
         <Text style={styles.addBtnText}>+ Add a personal deed</Text>
       </TouchableOpacity>
+
+      {/* Upcoming Deeds to Unlock Section */}
+      {lockedHabits.length > 0 && (
+        <View style={styles.lockedSection}>
+          <View style={styles.lockedHeader}>
+            <Text style={styles.lockedTitle}>UPCOMING DEEDS TO UNLOCK</Text>
+            <Text style={styles.lockedSub}>Grow your daily streak to reveal more spiritual habits</Text>
+          </View>
+
+          {lockedHabits.map((habit) => (
+            <HabitItem
+              key={habit.id}
+              habit={habit}
+              onLongPress={(h) => setSelectedHabitToDelete(h)}
+            />
+          ))}
+        </View>
+      )}
 
       <AddHabitModal
         visible={modalVisible}
@@ -115,6 +145,28 @@ const styles = StyleSheet.create({
     color: THEME.colors.textBody,
     fontSize: 14,
     fontWeight: '500',
+  },
+  lockedSection: {
+    marginTop: 18,
+    paddingTop: 16,
+    borderTopWidth: 1,
+    borderTopColor: '#ECEAE6',
+    gap: 2,
+  },
+  lockedHeader: {
+    marginBottom: 12,
+    paddingHorizontal: 2,
+    gap: 2,
+  },
+  lockedTitle: {
+    fontSize: 10,
+    fontWeight: '700',
+    color: THEME.colors.textMuted,
+    letterSpacing: 1,
+  },
+  lockedSub: {
+    fontSize: 12,
+    color: THEME.colors.textLight,
   },
 });
 

@@ -4,7 +4,15 @@ import { HabitCategory, HabitItemUIModel } from '../models/habit.model';
 
 
 export class HabitRepository {
-  async getHabitsForDate(dateKey: string): Promise<HabitItemUIModel[]> {
+  async initHabitsTable(): Promise<void> {
+    const db = await getDatabase();
+    try {
+      await db.execAsync('ALTER TABLE habits ADD COLUMN required_streak INTEGER DEFAULT 0');
+    } catch {}
+  }
+
+  async getHabitsForDate(dateKey: string, currentStreak: number = 0): Promise<HabitItemUIModel[]> {
+    await this.initHabitsTable();
     const db = await getDatabase();
     const safeDate = String(dateKey || getTodayDateString());
 
@@ -15,6 +23,7 @@ export class HabitRepository {
       benefit: string;
       tag: string;
       sort_order: number;
+      required_streak: number | null;
       completed: number | null;
     }>(
       `
@@ -25,23 +34,30 @@ export class HabitRepository {
         h.benefit, 
         h.tag, 
         h.sort_order,
+        h.required_streak,
         hl.completed
       FROM habits h
       LEFT JOIN habit_logs hl ON h.id = hl.habit_id AND hl.date_key = ?
-      ORDER BY h.sort_order ASC
+      ORDER BY (CASE WHEN hl.completed = 1 THEN 1 ELSE 0 END) ASC, (CASE WHEN h.required_streak > ? THEN 1 ELSE 0 END) ASC, h.sort_order ASC
       `,
-      [safeDate]
+      [safeDate, currentStreak]
     );
 
-    return rows.map((row) => ({
-      id: row.id,
-      name: row.name,
-      category: row.category as HabitCategory,
-      benefit: row.benefit,
-      tag: row.tag,
-      isCompleted: row.completed === 1,
-      sortOrder: row.sort_order,
-    }));
+    return rows.map((row) => {
+      const required = row.required_streak || 0;
+      const isLocked = currentStreak < required;
+      return {
+        id: row.id,
+        name: row.name,
+        category: row.category as HabitCategory,
+        benefit: row.benefit,
+        tag: row.tag,
+        isCompleted: row.completed === 1,
+        sortOrder: row.sort_order,
+        requiredStreak: required,
+        isLocked,
+      };
+    });
   }
 
 

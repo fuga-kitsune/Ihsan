@@ -1,71 +1,125 @@
 import { create } from 'zustand';
 import { NiyyahItem, NiyyahTimeframe } from '../models/niyyah.model';
+import { SpiritualQuest } from '../models/quest.model';
 import { niyyahRepository } from '../repositories/niyyah.repository';
+import { questRepository } from '../repositories/quest.repository';
 
 interface NiyyahState {
-  activeNiyyah: NiyyahItem | null;
+  weeklyNiyyah: NiyyahItem | null;
+  activeWeeklyNiyyahs: NiyyahItem[];
+  monthlyNiyyah: NiyyahItem | null;
   allNiyyahs: NiyyahItem[];
+  quests: SpiritualQuest[];
+  activeQuestTab: 'all' | 'weekly' | 'monthly' | 'sunnah';
   isLoading: boolean;
 
   // Actions
-  loadActiveNiyyah: () => Promise<void>;
-  loadAllNiyyahs: () => Promise<void>;
-  setNiyyah: (title: string, timeframe: NiyyahTimeframe, category?: string) => Promise<void>;
-  toggleComplete: () => Promise<void>;
+  loadNiyyahAndQuests: () => Promise<void>;
+  setNiyyah: (title: string, timeframe: NiyyahTimeframe, category?: string) => Promise<boolean>;
+  deleteNiyyah: (id: string) => Promise<void>;
+  toggleNiyyahComplete: (id: string, currentStatus: boolean) => Promise<void>;
+  incrementQuest: (id: string, amount?: number) => Promise<void>;
+  resetQuest: (id: string) => Promise<void>;
+  setActiveQuestTab: (tab: 'all' | 'weekly' | 'monthly' | 'sunnah') => void;
+  addCustomQuest: (quest: Omit<SpiritualQuest, 'id' | 'currentCount' | 'isCompleted'>) => Promise<void>;
 }
 
 export const useNiyyahStore = create<NiyyahState>((set, get) => ({
-  activeNiyyah: null,
+  weeklyNiyyah: null,
+  activeWeeklyNiyyahs: [],
+  monthlyNiyyah: null,
   allNiyyahs: [],
+  quests: [],
+  activeQuestTab: 'all',
   isLoading: false,
 
-  loadActiveNiyyah: async () => {
+  loadNiyyahAndQuests: async () => {
     set({ isLoading: true });
     try {
-      const item = await niyyahRepository.getActiveNiyyah();
-      const all = await niyyahRepository.getAllNiyyahs();
-      set({ activeNiyyah: item, allNiyyahs: all, isLoading: false });
-    } catch (e) {
-      console.error('Failed to load active niyyah', e);
-      set({ isLoading: false });
-    }
-  },
+      const activeWeekly = await niyyahRepository.getActiveNiyyahs('weekly');
+      const monthly = await niyyahRepository.getActiveNiyyah('monthly');
+      const allNiyyahs = await niyyahRepository.getAllNiyyahs();
+      const quests = await questRepository.getAllQuests();
 
-  loadAllNiyyahs: async () => {
-    try {
-      const all = await niyyahRepository.getAllNiyyahs();
-      set({ allNiyyahs: all });
+      set({
+        weeklyNiyyah: activeWeekly[0] || null,
+        activeWeeklyNiyyahs: activeWeekly,
+        monthlyNiyyah: monthly,
+        allNiyyahs,
+        quests,
+        isLoading: false,
+      });
     } catch (e) {
-      console.error('Failed to load all niyyahs', e);
+      console.error('Failed to load intentions & quests', e);
+      set({ isLoading: false });
     }
   },
 
   setNiyyah: async (title: string, timeframe: NiyyahTimeframe, category?: string) => {
     try {
-      const item = await niyyahRepository.setNiyyah(title, timeframe, category);
-      await get().loadActiveNiyyah();
+      const created = await niyyahRepository.setNiyyah(title, timeframe, category);
+      if (!created) {
+        return false;
+      }
+      await get().loadNiyyahAndQuests();
+      return true;
     } catch (e) {
-      console.error('Failed to set niyyah', e);
+      console.error('Failed to set intention', e);
+      return false;
     }
   },
 
-  toggleComplete: async () => {
-    const { activeNiyyah } = get();
-    if (!activeNiyyah) return;
-
+  deleteNiyyah: async (id: string) => {
     try {
-      const result = await niyyahRepository.toggleNiyyahComplete(activeNiyyah.id, activeNiyyah.isCompleted);
-      set({
-        activeNiyyah: {
-          ...activeNiyyah,
-          isCompleted: result.isCompleted,
-          completedAt: result.completedAt,
-        },
-      });
-      await get().loadAllNiyyahs();
+      await niyyahRepository.deleteNiyyah(id);
+      await get().loadNiyyahAndQuests();
     } catch (e) {
-      console.error('Failed to toggle niyyah completion', e);
+      console.error('Failed to delete intention', e);
+    }
+  },
+
+  toggleNiyyahComplete: async (id: string, currentStatus: boolean) => {
+    try {
+      await niyyahRepository.toggleNiyyahComplete(id, currentStatus);
+      await get().loadNiyyahAndQuests();
+    } catch (e) {
+      console.error('Failed to toggle intention completion', e);
+    }
+  },
+
+  incrementQuest: async (id: string, amount: number = 1) => {
+    try {
+      await questRepository.incrementQuest(id, amount);
+      const quests = await questRepository.getAllQuests();
+      set({ quests });
+    } catch (e) {
+      console.error('Failed to update quest', e);
+    }
+  },
+
+  resetQuest: async (id: string) => {
+    try {
+      await questRepository.resetQuest(id);
+      const quests = await questRepository.getAllQuests();
+      set({ quests });
+    } catch (e) {
+      console.error('Failed to reset quest', e);
+    }
+  },
+
+  setActiveQuestTab: (tab) => {
+    set({ activeQuestTab: tab });
+  },
+
+  addCustomQuest: async (quest) => {
+    try {
+      await questRepository.addCustomQuest(quest);
+      const quests = await questRepository.getAllQuests();
+      set({ quests });
+    } catch (e) {
+      console.error('Failed to add custom quest', e);
     }
   },
 }));
+
 

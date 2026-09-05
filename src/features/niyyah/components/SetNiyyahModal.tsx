@@ -1,36 +1,56 @@
 import React, { useState } from 'react';
-import { View, Text, TextInput, TouchableOpacity, Modal, ScrollView, StyleSheet } from 'react-native';
+import { View, Text, TextInput, TouchableOpacity, Modal, ScrollView, StyleSheet, Alert } from 'react-native';
 import { NiyyahTimeframe } from '../models/niyyah.model';
 import { useNiyyahStore } from '../store/useNiyyahStore';
 import { THEME } from '../../../core/constants/theme';
 
 interface SetNiyyahModalProps {
   visible: boolean;
+  defaultTimeframe?: NiyyahTimeframe;
   onClose: () => void;
 }
 
-export const SetNiyyahModal: React.FC<SetNiyyahModalProps> = ({ visible, onClose }) => {
+export const SetNiyyahModal: React.FC<SetNiyyahModalProps> = ({
+  visible,
+  onClose,
+}) => {
   const setNiyyah = useNiyyahStore((state) => state.setNiyyah);
+  const activeWeeklyNiyyahs = useNiyyahStore((state) => state.activeWeeklyNiyyahs);
   const [title, setTitle] = useState('');
-  const [timeframe, setTimeframe] = useState<NiyyahTimeframe>('weekly');
+  const [errorMsg, setErrorMsg] = useState<string | null>(null);
 
-  const INSPIRING_INTENTIONS = [
-    'Complete Surah Al-Mulk every night before sleep',
-    'Pray all 12 Sunnah Rawatib prayers this week',
-    'Fast Mondays and Thursdays (Sunnah devotion)',
-    'Recite 100x Istighfar daily with presence of heart',
-    'Give a quiet act of Sadaqah every Friday',
-    'Wake up 15 minutes before Fajr for 2 Rak\'ah Tahajjud',
+  const QUICK_WEEKLY_GOALS = [
+    'Surah Al-Mulk every night before sleep',
+    'Honor parents: Call or send a gift',
+    'Night Prayer (Tahajjud) twice this week',
+    'Pray all 12 Sunnah Rawatib daily',
+    'Fast Monday & Thursday',
+    '100x Daily Istighfar & Tawbah',
+    'Salatul Dhuha every morning',
+    'Guard the tongue from harsh speech',
   ];
 
   const handleSave = async (intentionText?: string) => {
     const textToSave = intentionText || title;
     if (!textToSave.trim()) return;
 
-    await setNiyyah(textToSave.trim(), timeframe);
+    if (activeWeeklyNiyyahs.length >= 3) {
+      setErrorMsg('You already have 3 active weekly goals. Finish one first to add more.');
+      return;
+    }
+
+    const success = await setNiyyah(textToSave.trim(), 'weekly');
+    if (!success) {
+      setErrorMsg('You already have 3 active weekly goals. Finish one first to add more.');
+      return;
+    }
+
+    setErrorMsg(null);
     setTitle('');
     onClose();
   };
+
+  const isFull = activeWeeklyNiyyahs.length >= 3;
 
   return (
     <Modal visible={visible} animationType="slide" transparent onRequestClose={onClose}>
@@ -38,74 +58,68 @@ export const SetNiyyahModal: React.FC<SetNiyyahModalProps> = ({ visible, onClose
         <View style={styles.sheet}>
           <View style={styles.header}>
             <View>
-              <Text style={styles.tag}>SPIRITUAL FOCUS</Text>
-              <Text style={styles.title}>Set Your Niyyah</Text>
+              <Text style={styles.tag}>WEEKLY FOCUS ({activeWeeklyNiyyahs.length}/3 ACTIVE)</Text>
+              <Text style={styles.title}>Add a Weekly Goal</Text>
             </View>
             <TouchableOpacity onPress={onClose} hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}>
               <Text style={styles.closeText}>✕</Text>
             </TouchableOpacity>
           </View>
 
-          <ScrollView showsVerticalScrollIndicator={false}>
-            {/* Timeframe Selector */}
-            <Text style={styles.label}>TIMEFRAME</Text>
-            <View style={styles.timeframeRow}>
-              <TouchableOpacity
-                style={[styles.timeframePill, timeframe === 'weekly' && styles.timeframePillActive]}
-                onPress={() => setTimeframe('weekly')}
-                activeOpacity={0.7}
-              >
-                <Text style={[styles.timeframeText, timeframe === 'weekly' && styles.timeframeTextActive]}>
-                  Weekly Focus
-                </Text>
-              </TouchableOpacity>
-
-              <TouchableOpacity
-                style={[styles.timeframePill, timeframe === 'monthly' && styles.timeframePillActive]}
-                onPress={() => setTimeframe('monthly')}
-                activeOpacity={0.7}
-              >
-                <Text style={[styles.timeframeText, timeframe === 'monthly' && styles.timeframeTextActive]}>
-                  Monthly Intention
-                </Text>
-              </TouchableOpacity>
+          {isFull ? (
+            <View style={styles.limitBanner}>
+              <Text style={styles.limitTitle}>Goal Limit Reached (3/3)</Text>
+              <Text style={styles.limitSub}>
+                You have 3 active goals this week. Finish or fulfill one from your dashboard before adding a new goal.
+              </Text>
             </View>
+          ) : (
+            <ScrollView showsVerticalScrollIndicator={false}>
+              {errorMsg && (
+                <View style={styles.errorBox}>
+                  <Text style={styles.errorText}>{errorMsg}</Text>
+                </View>
+              )}
 
-            {/* Custom Input */}
-            <Text style={styles.label}>YOUR INTENTION</Text>
-            <TextInput
-              style={styles.input}
-              placeholder="e.g. Read 1 page of Quran after Fajr every day..."
-              placeholderTextColor={THEME.colors.textLight}
-              value={title}
-              onChangeText={setTitle}
-            />
+              {/* Custom Input */}
+              <Text style={styles.label}>WRITE YOUR OWN</Text>
+              <TextInput
+                style={styles.input}
+                placeholder="e.g. Read Surah Al-Mulk every night..."
+                placeholderTextColor={THEME.colors.textLight}
+                value={title}
+                onChangeText={(text) => {
+                  setTitle(text);
+                  if (errorMsg) setErrorMsg(null);
+                }}
+              />
 
-            {title.trim().length > 0 && (
-              <TouchableOpacity
-                style={styles.saveBtn}
-                onPress={() => handleSave()}
-                activeOpacity={0.8}
-              >
-                <Text style={styles.saveBtnText}>Save Custom Niyyah</Text>
-              </TouchableOpacity>
-            )}
-
-            {/* Inspiring Ideas */}
-            <Text style={[styles.label, { marginTop: 16 }]}>OR CHOOSE AN INSPIRING FOCUS</Text>
-            <View style={styles.ideaList}>
-              {INSPIRING_INTENTIONS.map((idea) => (
+              {title.trim().length > 0 && (
                 <TouchableOpacity
-                  key={idea}
-                  style={styles.ideaCard}
-                  onPress={() => handleSave(idea)}
-                  activeOpacity={0.7}
+                  style={styles.saveBtn}
+                  onPress={() => handleSave()}
+                  activeOpacity={0.8}
                 >
-                  <Text style={styles.ideaText}>🌿 {idea}</Text>
+                  <Text style={styles.saveBtnText}>Add to Weekly Focus</Text>
                 </TouchableOpacity>
-              ))}
-            </View>
-          </ScrollView>
+              )}
+
+              {/* Quick Goals List */}
+              <Text style={[styles.label, { marginTop: 16 }]}>QUICK GOALS</Text>
+              <View style={styles.ideaList}>
+                {QUICK_WEEKLY_GOALS.map((goal) => (
+                  <TouchableOpacity
+                    key={goal}
+                    style={styles.ideaCard}
+                    onPress={() => handleSave(goal)}
+                    activeOpacity={0.7}
+                  >
+                    <Text style={styles.ideaText}>{goal}</Text>
+                  </TouchableOpacity>
+                ))}
+              </View>
+            </ScrollView>
+          )}
         </View>
       </View>
     </Modal>
@@ -187,6 +201,8 @@ const styles = StyleSheet.create({
     color: THEME.colors.textHeading,
     fontSize: 14,
     marginBottom: 10,
+    borderWidth: 1,
+    borderColor: '#ECEAE6',
   },
   saveBtn: {
     backgroundColor: THEME.colors.primary,
@@ -201,19 +217,63 @@ const styles = StyleSheet.create({
     fontSize: 14,
     fontWeight: '600',
   },
+  categoryContainer: {
+    gap: 16,
+    paddingBottom: 24,
+  },
+  sectionBlock: {
+    gap: 8,
+  },
+  sectionCatHeader: {
+    fontSize: 12,
+    fontWeight: '700',
+    color: THEME.colors.textMuted,
+    letterSpacing: 0.5,
+  },
   ideaList: {
     gap: 8,
-    paddingBottom: 24,
   },
   ideaCard: {
     backgroundColor: THEME.colors.bgCard,
     borderRadius: THEME.radius.md,
     padding: 16,
+    borderWidth: 1,
+    borderColor: '#ECEAE6',
   },
   ideaText: {
     fontSize: 13,
     color: THEME.colors.textBody,
     lineHeight: 18,
     fontWeight: '500',
+  },
+  limitBanner: {
+    backgroundColor: '#FEF3C7',
+    padding: 18,
+    borderRadius: THEME.radius.md,
+    borderWidth: 1,
+    borderColor: '#FDE68A',
+    gap: 6,
+    marginVertical: 10,
+  },
+  limitTitle: {
+    fontSize: 15,
+    fontWeight: '700',
+    color: '#92400E',
+  },
+  limitSub: {
+    fontSize: 13,
+    color: '#B45309',
+    lineHeight: 18,
+  },
+  errorBox: {
+    backgroundColor: '#FEE2E2',
+    padding: 12,
+    borderRadius: THEME.radius.md,
+    marginBottom: 12,
+  },
+  errorText: {
+    color: '#991B1B',
+    fontSize: 12,
+    fontWeight: '600',
   },
 });
