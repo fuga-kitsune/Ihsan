@@ -90,6 +90,45 @@ export class HabitRepository {
     return streak;
   }
 
+  async getWeeklyCompletionStatus(): Promise<Record<string, number>> {
+    const db = await getDatabase();
+    // Get Monday of current week
+    const now = new Date();
+    const dayOfWeek = (now.getDay() + 6) % 7; // Monday = 0
+    const monday = new Date(now);
+    monday.setDate(now.getDate() - dayOfWeek);
+
+    const dateKeys: string[] = [];
+    for (let i = 0; i < 7; i++) {
+      const d = new Date(monday);
+      d.setDate(monday.getDate() + i);
+      const key = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+      dateKeys.push(key);
+    }
+
+    const placeholders = dateKeys.map(() => '?').join(',');
+    const rows = await db.getAllAsync<{ date_key: string; count: number }>(
+      `
+      SELECT date_key, COUNT(*) as count 
+      FROM habit_logs 
+      WHERE completed = 1 AND date_key IN (${placeholders})
+      GROUP BY date_key
+      `,
+      dateKeys
+    );
+
+    const result: Record<string, number> = {};
+    // Initialize all dates with 0
+    dateKeys.forEach((key) => {
+      result[key] = 0;
+    });
+    rows.forEach((r) => {
+      result[r.date_key] = r.count;
+    });
+
+    return result;
+  }
+
   async addHabit(data: { name: string; category: string; benefit: string; tag: string }): Promise<void> {
     const db = await getDatabase();
     const id = `custom_${Date.now()}`;

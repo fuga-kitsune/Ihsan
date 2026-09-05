@@ -8,6 +8,7 @@ interface TrackerState {
   activeCategory: HabitCategory;
   selectedDate: string;
   stats: TrackerStatsUIModel;
+  weeklyCompletion: Record<string, number>;
   isLoading: boolean;
   
   // Actions
@@ -29,6 +30,7 @@ export const useTrackerStore = create<TrackerState>((set, get) => ({
     percentage: 0,
     streak: 0,
   },
+  weeklyCompletion: {},
   isLoading: false,
 
   setSelectedDate: async (newDate: string) => {
@@ -48,6 +50,7 @@ export const useTrackerStore = create<TrackerState>((set, get) => ({
     try {
       const items = await habitRepository.getHabitsForDate(targetDate);
       const streak = await habitRepository.calculateStreak();
+      const weeklyCompletion = await habitRepository.getWeeklyCompletionStatus();
       const completedCount = items.filter((h) => h.isCompleted).length;
       const totalCount = items.length;
       const percentage = totalCount > 0 ? Math.round((completedCount / totalCount) * 100) : 0;
@@ -55,6 +58,7 @@ export const useTrackerStore = create<TrackerState>((set, get) => ({
       set({
         habits: items,
         selectedDate: targetDate,
+        weeklyCompletion,
         stats: {
           completedCount,
           totalCount,
@@ -74,7 +78,7 @@ export const useTrackerStore = create<TrackerState>((set, get) => ({
   },
 
   toggleHabit: async (habitId: string) => {
-    const { habits, selectedDate } = get();
+    const { habits, selectedDate, weeklyCompletion } = get();
     const today = getTodayDateString();
     
     // Strict guard: cannot complete tasks for future dates
@@ -91,8 +95,14 @@ export const useTrackerStore = create<TrackerState>((set, get) => ({
     const totalCount = updated.length;
     const percentage = totalCount > 0 ? Math.round((completedCount / totalCount) * 100) : 0;
 
+    const updatedWeekly = {
+      ...weeklyCompletion,
+      [selectedDate]: completedCount,
+    };
+
     set((state) => ({
       habits: updated,
+      weeklyCompletion: updatedWeekly,
       stats: {
         ...state.stats,
         completedCount,
@@ -103,6 +113,15 @@ export const useTrackerStore = create<TrackerState>((set, get) => ({
 
     try {
       await habitRepository.toggleHabitStatus(habitId, selectedDate, target.isCompleted);
+      const latestWeekly = await habitRepository.getWeeklyCompletionStatus();
+      const streak = await habitRepository.calculateStreak();
+      set((state) => ({
+        weeklyCompletion: latestWeekly,
+        stats: {
+          ...state.stats,
+          streak,
+        },
+      }));
     } catch (e) {
       console.error('Failed to persist habit toggle to DB', e);
       get().loadHabits();

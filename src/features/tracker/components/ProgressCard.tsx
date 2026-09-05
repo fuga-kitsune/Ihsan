@@ -2,18 +2,21 @@ import React, { useEffect, useRef } from 'react';
 import { View, Text, StyleSheet, Animated } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { StreamlineFireIcon } from '../../../core/components/StreamlineFireIcon';
-import { StreamlineLockIcon } from '../../../core/components/StreamlineLockIcon';
 import { StreamlineCheckBadge } from '../../../core/components/StreamlineCheckBadge';
 import { useTrackerStore } from '../store/useTrackerStore';
 import { THEME } from '../../../core/constants/theme';
+import { getTodayDateString } from '../../../core/utils/date';
 
 export const ProgressCard: React.FC = () => {
   const stats = useTrackerStore((state) => state.stats);
+  const weeklyCompletion = useTrackerStore((state) => state.weeklyCompletion);
 
   const flameScale = useRef(new Animated.Value(1)).current;
   const pulseAnim = useRef(new Animated.Value(1)).current;
 
-  const isProtected = stats.completedCount >= 5;
+  const todayKey = getTodayDateString();
+  const todayCount = weeklyCompletion[todayKey] ?? (stats.completedCount);
+  const isProtected = todayCount >= 5;
   const streak = stats.streak;
 
   useEffect(() => {
@@ -36,9 +39,32 @@ export const ProgressCard: React.FC = () => {
     ]).start();
   }, [stats.completedCount]);
 
-  // Determine current day of week index (Monday = 0, Sunday = 6)
-  const currentDayOfWeek = (new Date().getDay() + 6) % 7;
-  const weekDays = ['M', 'T', 'W', 'T', 'F', 'S', 'S'];
+  // Generate current week dates (Mon to Sun)
+  const now = new Date();
+  const currentDayOfWeek = (now.getDay() + 6) % 7; // Mon = 0, Sun = 6
+  const monday = new Date(now);
+  monday.setDate(now.getDate() - currentDayOfWeek);
+
+  const weekDays = ['M', 'T', 'W', 'T', 'F', 'S', 'S'].map((letter, idx) => {
+    const d = new Date(monday);
+    d.setDate(monday.getDate() + idx);
+    const dateKey = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+    const isToday = idx === currentDayOfWeek;
+    const isPast = idx < currentDayOfWeek;
+    const count = weeklyCompletion[dateKey] || 0;
+    const isCompleted = count >= 5;
+    const isPartial = count > 0 && count < 5;
+
+    return {
+      letter,
+      dateKey,
+      count,
+      isToday,
+      isPast,
+      isCompleted,
+      isPartial,
+    };
+  });
 
   return (
     <View style={styles.container}>
@@ -75,12 +101,12 @@ export const ProgressCard: React.FC = () => {
         </Text>
       </View>
 
-      {/* RIGHT TILE: Daily Deeds with Tick Icon & Week Matrix (M T W T F S S) */}
+      {/* RIGHT TILE: Daily Deeds with Tick Icon, Progress Bar & Week Matrix (M T W T F S S) */}
       <View style={styles.goalTile}>
         <View style={styles.goalHeader}>
           <View style={styles.goalTitleRow}>
             <View style={styles.tickBoxCircle}>
-              <Ionicons name="checkbox" size={18} color="#1E3A2F" />
+              <Ionicons name="checkbox" size={17} color="#1E3A2F" />
             </View>
             <Text style={styles.goalTitle}>Daily Deeds</Text>
           </View>
@@ -91,23 +117,19 @@ export const ProgressCard: React.FC = () => {
           </View>
         </View>
 
+        {/* Slim Progress Bar */}
+        <View style={styles.miniBarBackground}>
+          <View style={[styles.miniBarFill, { width: `${stats.percentage}%` }]} />
+        </View>
+
         {/* 7-DAY WEEK ROW (M T W T F S S) */}
         <View style={styles.weekRow}>
-          {weekDays.map((letter, idx) => {
-            const isToday = idx === currentDayOfWeek;
-            const isPast = idx < currentDayOfWeek;
-
+          {weekDays.map((d, idx) => {
             let iconNode = null;
-            if (isToday) {
-              iconNode = isProtected ? (
-                <StreamlineCheckBadge size={18} />
-              ) : (
-                <StreamlineFireIcon size={18} />
-              );
-            } else if (isPast) {
-              iconNode = (
-                <Ionicons name="checkmark" size={12} color={THEME.colors.primary} />
-              );
+            if (d.isCompleted) {
+              iconNode = <StreamlineCheckBadge size={18} />;
+            } else if (d.isPartial || (d.isToday && d.count > 0)) {
+              iconNode = <StreamlineFireIcon size={18} />;
             }
 
             return (
@@ -116,15 +138,15 @@ export const ProgressCard: React.FC = () => {
                 <View
                   style={[
                     styles.dayCircle,
-                    isPast && styles.dayCirclePast,
-                    isToday && styles.dayCircleToday,
+                    d.isCompleted && styles.dayCirclePast,
+                    d.isToday && styles.dayCircleToday,
                   ]}
                 >
                   {iconNode}
                 </View>
                 {/* Day Letter */}
-                <Text style={[styles.dayLetter, isToday && styles.dayLetterToday]}>
-                  {letter}
+                <Text style={[styles.dayLetter, d.isToday && styles.dayLetterToday]}>
+                  {d.letter}
                 </Text>
               </View>
             );
@@ -211,7 +233,9 @@ const styles = StyleSheet.create({
     flex: 1.45,
     backgroundColor: THEME.colors.bgCard,
     borderRadius: 22,
-    padding: 14,
+    paddingHorizontal: 14,
+    paddingTop: 13,
+    paddingBottom: 11,
     justifyContent: 'space-between',
     borderWidth: 1,
     borderColor: '#ECEAE6',
@@ -221,6 +245,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
+    marginBottom: 2,
   },
   goalTitleRow: {
     flexDirection: 'row',
@@ -228,8 +253,8 @@ const styles = StyleSheet.create({
     gap: 6,
   },
   tickBoxCircle: {
-    width: 22,
-    height: 22,
+    width: 20,
+    height: 20,
     borderRadius: 6,
     alignItems: 'center',
     justifyContent: 'center',
@@ -258,17 +283,29 @@ const styles = StyleSheet.create({
     fontWeight: '600',
     color: THEME.colors.textMuted,
   },
+  miniBarBackground: {
+    height: 4,
+    backgroundColor: '#F5F5F4',
+    borderRadius: THEME.radius.full,
+    overflow: 'hidden',
+    marginVertical: 4,
+  },
+  miniBarFill: {
+    height: '100%',
+    backgroundColor: THEME.colors.primary,
+    borderRadius: THEME.radius.full,
+  },
 
   /* WEEKS ROW (M T W T F S S) */
   weekRow: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    marginTop: 4,
+    marginTop: 2,
   },
   dayCol: {
     alignItems: 'center',
-    gap: 5,
+    gap: 4,
   },
   dayLetter: {
     fontSize: 10,
