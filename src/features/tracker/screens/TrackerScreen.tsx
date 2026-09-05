@@ -67,7 +67,7 @@ export const TrackerScreen: React.FC<TrackerScreenProps> = ({
       </View>
       <DateStrip /> */}
 
-      <NiyyahCard />
+      {/* <NiyyahCard /> */}
       {/* <WisdomCard /> */}
       <CategoryTabs />
       <HabitList />

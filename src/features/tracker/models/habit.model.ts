@@ -16,6 +16,7 @@ export interface HabitItemUIModel {
   benefit: string;
   tag: string;
   isCompleted: boolean;
+  sortOrder?: number;
 }
 
 export interface TrackerStatsUIModel {

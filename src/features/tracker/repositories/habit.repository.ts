@@ -40,6 +40,7 @@ export class HabitRepository {
       benefit: row.benefit,
       tag: row.tag,
       isCompleted: row.completed === 1,
+      sortOrder: row.sort_order,
     }));
   }
 

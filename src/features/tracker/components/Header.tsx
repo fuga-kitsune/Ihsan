@@ -4,6 +4,7 @@ import { useTrackerStore } from '../store/useTrackerStore';
 import { useSettingsStore } from '../../settings/store/useSettingsStore';
 import { THEME } from '../../../core/constants/theme';
 import { formatHeaderDates } from '../../../core/utils/date';
+import { StreamlineProfileIcon } from '../../../core/components/StreamlineProfileIcon';
 
 interface HeaderProps {
   onOpenSettings?: () => void;
@@ -19,8 +20,13 @@ export const Header: React.FC<HeaderProps> = ({ onOpenSettings }) => {
       <View style={styles.topRow}>
         <Text style={styles.dateLabel}>{gregorian.toUpperCase()} • {hijri.toUpperCase()}</Text>
         {onOpenSettings && (
-          <TouchableOpacity onPress={onOpenSettings} hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}>
-            <Text style={styles.settingsBtnText}>Settings</Text>
+          <TouchableOpacity
+            style={styles.profileBtn}
+            onPress={onOpenSettings}
+            hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+            activeOpacity={0.7}
+          >
+            <StreamlineProfileIcon size={22} />
           </TouchableOpacity>
         )}
       </View>
@@ -52,6 +58,11 @@ const styles = StyleSheet.create({
     fontWeight: '600',
     color: THEME.colors.textMuted,
     letterSpacing: 1.2,
+  },
+  profileBtn: {
+    padding: 2,
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   settingsBtnText: {
     fontSize: 12,
