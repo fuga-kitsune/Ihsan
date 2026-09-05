@@ -1,8 +1,11 @@
 import React from 'react';
 import { View, Text, TouchableOpacity, StyleSheet, Platform } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { Ionicons } from '@expo/vector-icons';
 import { THEME } from '../constants/theme';
+import { StreamlineDeedsIcon } from './StreamlineDeedsIcon';
+import { StreamlineBookIcon } from './StreamlineBookIcon';
+import { StreamlineChartIcon } from './StreamlineChartIcon';
+import { StreamlineMoonIcon } from './StreamlineMoonIcon';
 
 export type ScreenTab = 'tracker' | 'duas' | 'analytics' | 'muhasabah';
 
@@ -14,40 +17,40 @@ interface BottomNavBarProps {
 export const BottomNavBar: React.FC<BottomNavBarProps> = ({ currentTab, onSelectTab }) => {
   const insets = useSafeAreaInsets();
 
+  const renderIcon = (id: ScreenTab, isActive: boolean) => {
+    switch (id) {
+      case 'tracker':
+        return <StreamlineDeedsIcon size={24} focused={isActive} />;
+      case 'duas':
+        return <StreamlineBookIcon size={24} focused={isActive} />;
+      case 'analytics':
+        return <StreamlineChartIcon size={24} focused={isActive} />;
+      case 'muhasabah':
+        return <StreamlineMoonIcon size={24} focused={isActive} />;
+      default:
+        return null;
+    }
+  };
+
   const tabs: {
     id: ScreenTab;
     label: string;
-    iconActive: keyof typeof Ionicons.glyphMap;
-    iconInactive: keyof typeof Ionicons.glyphMap;
-    color: string;
   }[] = [
     {
       id: 'tracker',
       label: 'Deeds',
-      iconActive: 'checkmark-circle',
-      iconInactive: 'checkmark-circle-outline',
-      color: '#0284C7', // Vivid Ocean Blue
     },
     {
       id: 'duas',
       label: "Du'as",
-      iconActive: 'book',
-      iconInactive: 'book-outline',
-      color: '#0D9488', // Serene Teal / Turquoise
     },
     {
       id: 'analytics',
       label: 'Journey',
-      iconActive: 'stats-chart',
-      iconInactive: 'stats-chart-outline',
-      color: '#1E3A2F', // Forest Pine
     },
     {
       id: 'muhasabah',
       label: 'Muhasabah',
-      iconActive: 'moon',
-      iconInactive: 'moon-outline',
-      color: '#EAB308', // Warm Moon Yellow
     },
   ];
 
@@ -63,8 +66,6 @@ export const BottomNavBar: React.FC<BottomNavBarProps> = ({ currentTab, onSelect
       <View style={styles.navInner}>
         {tabs.map((tab) => {
           const isActive = currentTab === tab.id;
-          const iconName = isActive ? tab.iconActive : tab.iconInactive;
-          const iconColor = isActive ? tab.color : THEME.colors.textLight;
 
           return (
             <TouchableOpacity
@@ -73,11 +74,9 @@ export const BottomNavBar: React.FC<BottomNavBarProps> = ({ currentTab, onSelect
               onPress={() => onSelectTab(tab.id)}
               activeOpacity={0.7}
             >
-              <Ionicons
-                name={iconName}
-                size={22}
-                color={iconColor}
-              />
+              <View style={styles.iconWrapper}>
+                {renderIcon(tab.id, isActive)}
+              </View>
               <Text style={[styles.tabLabel, isActive && styles.activeTabLabel]}>
                 {tab.label}
               </Text>
@@ -117,8 +116,13 @@ const styles = StyleSheet.create({
     flex: 1,
     alignItems: 'center',
     justifyContent: 'center',
-    paddingVertical: 5,
+    paddingVertical: 4,
     gap: 3,
+  },
+  iconWrapper: {
+    height: 26,
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   tabLabel: {
     fontSize: 11,
@@ -128,5 +132,7 @@ const styles = StyleSheet.create({
   },
   activeTabLabel: {
     color: THEME.colors.textHeading,
+    fontWeight: '700',
   },
 });
+
