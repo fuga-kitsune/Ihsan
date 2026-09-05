@@ -38,7 +38,7 @@ export const Header: React.FC<HeaderProps> = ({ onOpenSettings }) => {
 
 const styles = StyleSheet.create({
   container: {
-    marginBottom: 24,
+    marginBottom: 20,
     paddingTop: 8,
   },
   topRow: {

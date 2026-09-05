@@ -55,16 +55,18 @@ export const TrackerScreen: React.FC<TrackerScreenProps> = ({
     >
       <Header onOpenSettings={onOpenSettings} />
 
-      {/* Date Strip & History Archive button */}
-      <View style={styles.dateHeaderRow}>
+      {/* Streak & Daily Deeds Card */}
+      <ProgressCard />
+
+      {/* Daily Log Date Strip & History Archive button */}
+      {/* <View style={styles.dateHeaderRow}>
         <Text style={styles.sectionLabel}>DAILY LOG</Text>
         <TouchableOpacity onPress={() => setArchiveVisible(true)} activeOpacity={0.7}>
           <Text style={styles.historyLinkText}>Archive</Text>
         </TouchableOpacity>
       </View>
-      <DateStrip />
+      <DateStrip /> */}
 
-      <ProgressCard />
       <NiyyahCard />
       {/* <WisdomCard /> */}
       <CategoryTabs />

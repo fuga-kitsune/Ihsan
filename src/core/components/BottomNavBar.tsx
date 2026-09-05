@@ -23,7 +23,7 @@ export const BottomNavBar: React.FC<BottomNavBarProps> = ({ currentTab, onSelect
   }[] = [
     {
       id: 'tracker',
-      label: 'Tracker',
+      label: 'Deeds',
       iconActive: 'checkmark-circle',
       iconInactive: 'checkmark-circle-outline',
       color: '#0284C7', // Vivid Ocean Blue
