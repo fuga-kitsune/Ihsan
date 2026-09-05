@@ -21,6 +21,8 @@ export const QuestCard: React.FC<QuestCardProps> = ({ quest, onOpenCounter }) =>
   const isFriday = new Date().getDay() === 5;
   const isKahf = quest.id === 'quest_kahf';
   const isSalawat = quest.id === 'quest_salawat';
+  const isIstighfar = quest.id === 'quest_istighfar';
+  const hasCounter = isSalawat || isIstighfar;
 
   const isNewlyUnlocked =
     (quest.requiredStreak ?? 0) > 0 &&
@@ -35,7 +37,7 @@ export const QuestCard: React.FC<QuestCardProps> = ({ quest, onOpenCounter }) =>
     if (quest.isLocked) return;
     if (quest.isCompleted) {
       setConfirmResetVisible(true);
-    } else if (isSalawat && onOpenCounter) {
+    } else if (hasCounter && onOpenCounter) {
       onOpenCounter(quest);
     } else {
       incrementQuest(quest.id, 1);
@@ -69,8 +71,8 @@ export const QuestCard: React.FC<QuestCardProps> = ({ quest, onOpenCounter }) =>
       {/* Main Row */}
       <View style={styles.mainRow}>
         <TouchableOpacity
-          activeOpacity={isSalawat ? 0.7 : 1}
-          onPress={() => isSalawat && onOpenCounter && onOpenCounter(quest)}
+          activeOpacity={hasCounter ? 0.7 : 1}
+          onPress={() => hasCounter && onOpenCounter && onOpenCounter(quest)}
           style={styles.infoCol}
         >
           <View style={styles.titleLine}>
@@ -91,7 +93,7 @@ export const QuestCard: React.FC<QuestCardProps> = ({ quest, onOpenCounter }) =>
             )}
             {quest.isCompleted && (
               <View style={styles.doneBadge}>
-                <Text style={styles.doneBadgeText}>✓</Text>
+                <Text style={styles.doneBadgeText}>DONE</Text>
               </View>
             )}
           </View>
@@ -115,25 +117,35 @@ export const QuestCard: React.FC<QuestCardProps> = ({ quest, onOpenCounter }) =>
             </TouchableOpacity>
           )}
 
-          <TouchableOpacity
-            onPress={handleAction}
-            activeOpacity={0.7}
-            style={[
-              styles.btn,
-              quest.isCompleted && styles.btnReset,
-              isSalawat && !quest.isCompleted && styles.btnCounter,
-            ]}
-          >
-            <Text
+          {!quest.isCompleted ? (
+            <TouchableOpacity
+              onPress={handleAction}
+              activeOpacity={0.7}
               style={[
-                styles.btnText,
-                quest.isCompleted && styles.btnResetText,
-                isSalawat && !quest.isCompleted && styles.btnCounterText,
+                styles.btn,
+                hasCounter && styles.btnCounter,
               ]}
             >
-              {quest.isCompleted ? 'Reset' : isSalawat ? 'Counter' : '+1'}
-            </Text>
-          </TouchableOpacity>
+              <Text
+                style={[
+                  styles.btnText,
+                  hasCounter && styles.btnCounterText,
+                ]}
+              >
+                {hasCounter ? 'Counter' : '+1'}
+              </Text>
+            </TouchableOpacity>
+          ) : !isIstighfar && quest.period !== 'Daily' ? (
+            <TouchableOpacity
+              onPress={handleAction}
+              activeOpacity={0.7}
+              style={[styles.btn, styles.btnReset]}
+            >
+              <Text style={[styles.btnText, styles.btnResetText]}>
+                Reset
+              </Text>
+            </TouchableOpacity>
+          ) : null}
         </View>
       </View>
 
@@ -269,17 +281,16 @@ const styles = StyleSheet.create({
     color: '#1E3A2F',
   },
   doneBadge: {
-    backgroundColor: '#10B981',
-    width: 16,
-    height: 16,
-    borderRadius: 8,
-    alignItems: 'center',
-    justifyContent: 'center',
+    backgroundColor: '#DCFCE7',
+    paddingHorizontal: 6,
+    paddingVertical: 1,
+    borderRadius: THEME.radius.full,
   },
   doneBadgeText: {
-    color: '#FFFFFF',
-    fontSize: 10,
-    fontWeight: '700',
+    color: '#166534',
+    fontSize: 9,
+    fontWeight: '800',
+    letterSpacing: 0.5,
   },
   subInfo: {
     fontSize: 12,

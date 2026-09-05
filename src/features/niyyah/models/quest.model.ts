@@ -4,7 +4,7 @@ export interface SpiritualQuest {
   id: string;
   title: string;
   category: QuestCategory;
-  period: 'Weekly' | 'Monthly' | 'Special';
+  period: 'Daily' | 'Weekly' | 'Monthly' | 'Special';
   description: string;
   benefit: string;
   targetCount: number;
@@ -14,6 +14,7 @@ export interface SpiritualQuest {
   iconName: string;
   requiredStreak?: number;
   isLocked?: boolean;
+  lastUpdatedDate?: string;
 }
 
 export const INITIAL_QUESTS: SpiritualQuest[] = [
@@ -33,13 +34,13 @@ export const INITIAL_QUESTS: SpiritualQuest[] = [
   },
   // Starter Tier (0-day streak)
   {
-    id: 'quest_parents',
-    title: 'Honor Parents / Send a Gift',
+    id: 'quest_istighfar',
+    title: '100x Daily Istighfar',
     category: 'weekly',
-    period: 'Weekly',
-    description: 'Call, speak gently, or give a gift',
+    period: 'Daily',
+    description: 'Seeking Allah’s forgiveness daily',
     benefit: '',
-    targetCount: 2,
+    targetCount: 100,
     currentCount: 0,
     isCompleted: false,
     unit: 'times',

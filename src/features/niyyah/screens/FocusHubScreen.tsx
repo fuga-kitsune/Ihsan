@@ -21,7 +21,7 @@ export const FocusHubScreen: React.FC = () => {
   const resetQuest = useNiyyahStore((state) => state.resetQuest);
 
   const [modalVisible, setModalVisible] = useState(false);
-  const [salawatModalVisible, setSalawatModalVisible] = useState(false);
+  const [activeCounterQuest, setActiveCounterQuest] = useState<SpiritualQuest | null>(null);
 
   // Themed confirmation modal state for Weekly Goal completion
   const [finishGoalTarget, setFinishGoalTarget] = useState<{ id: string; title: string } | null>(null);
@@ -79,6 +79,7 @@ export const FocusHubScreen: React.FC = () => {
 
   const activeCount = activeWeeklyNiyyahs.length;
   const canAddMore = activeCount < 3;
+  const allThreeCompleted = activeCount === 3 && activeWeeklyNiyyahs.every((g) => g.isCompleted);
 
   return (
     <ScrollView
@@ -102,8 +103,28 @@ export const FocusHubScreen: React.FC = () => {
         <View style={styles.sectionHeader}>
           <View style={styles.sectionTitleRow}>
             <Text style={styles.sectionHeading}>THIS WEEK'S GOALS</Text>
-            <View style={styles.countBadge}>
-              <Text style={styles.countBadgeText}>{activeCount}/3</Text>
+            <View
+              style={[
+                styles.countBadge,
+                allThreeCompleted
+                  ? styles.countBadgeGreen
+                  : activeCount === 0
+                  ? styles.countBadgeNeutral
+                  : styles.countBadgeYellow,
+              ]}
+            >
+              <Text
+                style={[
+                  styles.countBadgeText,
+                  allThreeCompleted
+                    ? styles.countBadgeTextGreen
+                    : activeCount === 0
+                    ? styles.countBadgeTextNeutral
+                    : styles.countBadgeTextYellow,
+                ]}
+              >
+                {activeCount}/3
+              </Text>
             </View>
           </View>
           {canAddMore && (
@@ -145,7 +166,7 @@ export const FocusHubScreen: React.FC = () => {
                     {isSalawatGoal && salawatQuest && !isDone && (
                       <TouchableOpacity
                         style={styles.counterBtn}
-                        onPress={() => setSalawatModalVisible(true)}
+                        onPress={() => setActiveCounterQuest(salawatQuest)}
                         activeOpacity={0.7}
                       >
                         <Text style={styles.counterBtnText}>
@@ -222,7 +243,7 @@ export const FocusHubScreen: React.FC = () => {
                   <Text style={styles.salawatBadgeText}>FRIDAY EVENT • 1,000 SALAWAT</Text>
                 </View>
                 <TouchableOpacity
-                  onPress={() => setSalawatModalVisible(true)}
+                  onPress={() => setActiveCounterQuest(salawatQuest)}
                   style={styles.salawatActionBtn}
                   activeOpacity={0.8}
                 >
@@ -276,7 +297,7 @@ export const FocusHubScreen: React.FC = () => {
             <QuestCard
               key={quest.id}
               quest={quest}
-              onOpenCounter={() => setSalawatModalVisible(true)}
+              onOpenCounter={(q) => setActiveCounterQuest(q)}
             />
           ))}
         </View>
@@ -288,11 +309,11 @@ export const FocusHubScreen: React.FC = () => {
         onClose={() => setModalVisible(false)}
       />
 
-      {salawatQuest && (
+      {activeCounterQuest && (
         <SalawatCounterModal
-          visible={salawatModalVisible}
-          quest={salawatQuest}
-          onClose={() => setSalawatModalVisible(false)}
+          visible={!!activeCounterQuest}
+          quest={activeCounterQuest}
+          onClose={() => setActiveCounterQuest(null)}
         />
       )}
 
@@ -375,19 +396,35 @@ const styles = StyleSheet.create({
   sectionHeading: {
     fontSize: 11,
     fontWeight: '700',
-    color: '#B45309',
+    color: '#78716C',
     letterSpacing: 1,
   },
   countBadge: {
-    backgroundColor: '#FEF3C7',
     paddingHorizontal: 8,
     paddingVertical: 2,
     borderRadius: THEME.radius.full,
   },
+  countBadgeGreen: {
+    backgroundColor: '#E8F5E9',
+  },
+  countBadgeYellow: {
+    backgroundColor: '#FEF3C7',
+  },
+  countBadgeNeutral: {
+    backgroundColor: '#F5F5F4',
+  },
   countBadgeText: {
     fontSize: 10,
     fontWeight: '700',
+  },
+  countBadgeTextGreen: {
+    color: '#166534',
+  },
+  countBadgeTextYellow: {
     color: '#B45309',
+  },
+  countBadgeTextNeutral: {
+    color: '#78716C',
   },
   addActionText: {
     fontSize: 12,
@@ -398,11 +435,12 @@ const styles = StyleSheet.create({
     gap: 10,
   },
   goalCard: {
-    backgroundColor: '#FAF5EF',
-    borderRadius: THEME.radius.lg,
-    padding: 16,
+    backgroundColor: THEME.colors.bgCard,
+    borderRadius: THEME.radius.md,
+    paddingVertical: 14,
+    paddingHorizontal: 16,
     borderWidth: 1,
-    borderColor: '#EFE8DE',
+    borderColor: '#ECEAE6',
     gap: 8,
   },
   goalCardCompleted: {
@@ -417,14 +455,14 @@ const styles = StyleSheet.create({
   goalIndex: {
     fontSize: 10,
     fontWeight: '700',
-    color: '#B45309',
+    color: THEME.colors.textMuted,
     letterSpacing: 0.8,
   },
   goalIndexCompleted: {
     color: '#166534',
   },
   committedBadge: {
-    backgroundColor: '#FEF3C7',
+    backgroundColor: '#F3F4F6',
     paddingHorizontal: 8,
     paddingVertical: 2,
     borderRadius: THEME.radius.full,
@@ -434,12 +472,13 @@ const styles = StyleSheet.create({
   },
   committedBadgeText: {
     fontSize: 9,
-    fontWeight: '800',
-    color: '#B45309',
+    fontWeight: '700',
+    color: THEME.colors.textMuted,
     letterSpacing: 0.6,
   },
   committedBadgeTextDone: {
     color: '#166534',
+    fontWeight: '800',
   },
   goalTitle: {
     fontSize: 16,

@@ -93,7 +93,6 @@ export const OnboardingScreen: React.FC<OnboardingScreenProps> = ({ onFinish }) 
   };
 
   const handleComplete = async () => {
-    await setNiyyah(selectedNiyyah, 'weekly');
     await completeOnboarding();
     onFinish();
   };

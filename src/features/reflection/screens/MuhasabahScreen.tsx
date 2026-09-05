@@ -27,7 +27,6 @@ interface HeartStateOption {
   id: string;
   arabicTitle: string;
   englishMeaning: string;
-  stateDescription: string;
 }
 
 export const MuhasabahScreen: React.FC<MuhasabahScreenProps> = ({ onBack }) => {
@@ -76,32 +75,27 @@ export const MuhasabahScreen: React.FC<MuhasabahScreenProps> = ({ onBack }) => {
     {
       id: 'shukr',
       arabicTitle: 'Alhamdulillah',
-      englishMeaning: 'Shukr & Contentment',
-      stateDescription: 'My heart feels peaceful, grateful, and blessed.',
+      englishMeaning: 'Grateful & Content',
     },
     {
       id: 'tawakkul',
       arabicTitle: 'Tawakkul',
       englishMeaning: 'Trusting Allah',
-      stateDescription: 'Facing uncertainty, but leaving all affairs in Allah’s care.',
     },
     {
       id: 'himmah',
       arabicTitle: 'Himmah',
-      englishMeaning: 'High Spiritual Energy',
-      stateDescription: 'Focused, productive, and eager for good deeds.',
+      englishMeaning: 'Energized & Focused',
     },
     {
       id: 'sabr',
       arabicTitle: 'Sabr',
-      englishMeaning: 'Patience in Trials',
-      stateDescription: 'Going through tests, holding steadfast with patience.',
+      englishMeaning: 'Patient in Trials',
     },
     {
       id: 'istighfar',
       arabicTitle: 'Astaghfirullah',
-      englishMeaning: 'Need Forgiveness & Reset',
-      stateDescription: 'Fell short today; seeking Allah’s mercy and renewal.',
+      englishMeaning: 'Seeking Forgiveness',
     },
   ];
 
@@ -162,7 +156,6 @@ export const MuhasabahScreen: React.FC<MuhasabahScreenProps> = ({ onBack }) => {
 
         {/* 2. Heart State Check-in Section */}
         <View style={styles.sectionCard}>
-          <Text style={styles.sectionTag}>SPIRITUAL CHECK-IN</Text>
           <Text style={styles.sectionHeading}>How is your heart tonight?</Text>
 
           <View style={styles.stateList}>
@@ -178,14 +171,13 @@ export const MuhasabahScreen: React.FC<MuhasabahScreenProps> = ({ onBack }) => {
                   <View style={[styles.radioOuter, isSelected && styles.radioOuterActive]}>
                     {isSelected && <View style={styles.radioInner} />}
                   </View>
-                  <View style={styles.stateTextCol}>
-                    <View style={styles.stateTitleRow}>
-                      <Text style={[styles.stateArabic, isSelected && styles.stateArabicActive]}>
-                        {option.arabicTitle}
-                      </Text>
-                      <Text style={styles.stateEnglish}>• {option.englishMeaning}</Text>
-                    </View>
-                    <Text style={styles.stateDesc}>{option.stateDescription}</Text>
+                  <View style={styles.stateTitleRow}>
+                    <Text style={[styles.stateArabic, isSelected && styles.stateArabicActive]}>
+                      {option.arabicTitle}
+                    </Text>
+                    <Text style={[styles.stateEnglish, isSelected && styles.stateEnglishActive]}>
+                      • {option.englishMeaning}
+                    </Text>
                   </View>
                 </TouchableOpacity>
               );
@@ -195,7 +187,6 @@ export const MuhasabahScreen: React.FC<MuhasabahScreenProps> = ({ onBack }) => {
 
         {/* 3. Guided Journaling Section */}
         <View style={styles.sectionCard}>
-          <Text style={styles.sectionTag}>DAILY REFLECTION</Text>
           <Text style={styles.sectionHeading}>Journal & Gratitude</Text>
 
           <TextInput
@@ -314,24 +305,27 @@ const styles = StyleSheet.create({
     marginBottom: 16,
   },
   stateList: {
-    gap: 10,
+    gap: 8,
   },
   stateItem: {
     backgroundColor: THEME.colors.bgCardSubtle,
     borderRadius: THEME.radius.md,
-    paddingVertical: 14,
-    paddingHorizontal: 16,
+    paddingVertical: 12,
+    paddingHorizontal: 14,
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 14,
+    gap: 12,
+    borderWidth: 1,
+    borderColor: 'transparent',
   },
   stateItemActive: {
-    backgroundColor: THEME.colors.bgCardActive,
+    backgroundColor: '#F3F9F5',
+    borderColor: '#D7EFE2',
   },
   radioOuter: {
-    width: 22,
-    height: 22,
-    borderRadius: 11,
+    width: 20,
+    height: 20,
+    borderRadius: 10,
     borderWidth: 1.5,
     borderColor: THEME.colors.textLight,
     alignItems: 'center',
@@ -346,14 +340,12 @@ const styles = StyleSheet.create({
     borderRadius: 5,
     backgroundColor: THEME.colors.primary,
   },
-  stateTextCol: {
-    flex: 1,
-  },
   stateTitleRow: {
+    flex: 1,
     flexDirection: 'row',
     alignItems: 'center',
     gap: 6,
-    marginBottom: 2,
+    flexWrap: 'wrap',
   },
   stateArabic: {
     fontSize: 15,
@@ -364,14 +356,13 @@ const styles = StyleSheet.create({
     color: THEME.colors.primary,
   },
   stateEnglish: {
-    fontSize: 12,
+    fontSize: 13,
     color: THEME.colors.textMuted,
     fontWeight: '500',
   },
-  stateDesc: {
-    fontSize: 12,
-    color: THEME.colors.textMuted,
-    lineHeight: 16,
+  stateEnglishActive: {
+    color: THEME.colors.primary,
+    fontWeight: '600',
   },
   journalInput: {
     backgroundColor: THEME.colors.bgCardSubtle,

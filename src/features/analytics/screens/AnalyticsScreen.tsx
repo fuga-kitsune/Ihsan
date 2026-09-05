@@ -101,7 +101,7 @@ export const AnalyticsScreen: React.FC<AnalyticsScreenProps> = () => {
           {/* Interactive Tap-Day Calendar Heatmap Grid */}
           <InteractiveCalendarHeatmap
             days={data.heatmapDays}
-            title={`${data.monthTitle} Devotion Grid`}
+            title={data.monthTitle}
           />
 
           {/* Weekly Focus Goals History */}

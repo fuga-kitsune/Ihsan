@@ -24,18 +24,18 @@ export const InteractiveCalendarHeatmap: React.FC<InteractiveCalendarHeatmapProp
   useEffect(() => {
     if (!selectedDateKey) return;
     setLoading(true);
-    habitRepository.getHabitsForDate(selectedDateKey, 100).then((habits) => {
+    habitRepository.getHabitsForDate(selectedDateKey).then((habits) => {
       setDayHabits(habits);
       setLoading(false);
     });
   }, [selectedDateKey]);
 
   const getColorForPercentage = (p: number, isFuture: boolean) => {
-    if (isFuture) return '#F3F2EE';
-    if (p >= 80) return '#1E3A2F'; // High Devotion
-    if (p >= 50) return '#4ADE80'; // Moderate Devotion
-    if (p >= 20) return '#BBF7D0'; // Subtle Devotion
-    return THEME.colors.bgCardSubtle; // Inactive
+    if (isFuture) return '#F7F6F3';
+    if (p >= 80) return '#1E3A2F'; // High Devotion (Deep Emerald)
+    if (p >= 50) return '#4ADE80'; // Moderate Devotion (Vibrant Green)
+    if (p >= 20) return '#C8E6C9'; // Subtle Devotion
+    return '#EFEFEA'; // Past Inactive (clean visible neutral circle)
   };
 
   const selectedDay = days.find((d) => d.dateKey === selectedDateKey);
@@ -48,7 +48,6 @@ export const InteractiveCalendarHeatmap: React.FC<InteractiveCalendarHeatmapProp
       <View style={styles.card}>
         <View style={styles.headerRow}>
           <View>
-            <Text style={styles.tag}>INTERACTIVE DEVOTION GRID</Text>
             <Text style={styles.title}>{title || 'Monthly Grid'}</Text>
           </View>
 
@@ -62,43 +61,70 @@ export const InteractiveCalendarHeatmap: React.FC<InteractiveCalendarHeatmapProp
 
         <Text style={styles.hintText}>Tap any day to see completed deeds & spiritual breakdown</Text>
 
+        {/* Weekday Header Row */}
+        <View style={styles.weekHeaderRow}>
+          {['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'].map((d) => (
+            <Text key={d} style={styles.weekHeaderDay}>
+              {d}
+            </Text>
+          ))}
+        </View>
+
+        {/* Days Grid (aligned by first day of month) */}
         <View style={styles.grid}>
-          {days.map((day) => {
-            const isFuture = day.dateKey > todayStr;
-            const bg = getColorForPercentage(day.percentage, isFuture);
-            const isDeep = day.percentage >= 80 && !isFuture;
-            const isSelected = day.dateKey === selectedDateKey;
+          {(() => {
+            if (days.length === 0) return null;
+            // First day of this month
+            const firstDateStr = days[0].dateKey;
+            const firstDayOfWeek = new Date(firstDateStr).getDay(); // 0 = Sun, 1 = Mon ...
+            
+            const leadingEmptySlots = Array.from({ length: firstDayOfWeek });
 
             return (
-              <TouchableOpacity
-                key={day.dateKey}
-                style={styles.dayCol}
-                onPress={() => setSelectedDateKey(day.dateKey)}
-                activeOpacity={0.7}
-              >
-                <View
-                  style={[
-                    styles.cell,
-                    { backgroundColor: bg },
-                    isSelected && styles.cellSelected,
-                  ]}
-                >
-                  <Text
-                    style={[
-                      styles.dayNum,
-                      isDeep && styles.dayNumLight,
-                      isSelected && styles.dayNumSelected,
-                    ]}
-                  >
-                    {day.dayNumber}
-                  </Text>
-                </View>
-                <Text style={[styles.dayName, isSelected && styles.dayNameSelected]}>
-                  {day.dayOfWeek}
-                </Text>
-              </TouchableOpacity>
+              <>
+                {leadingEmptySlots.map((_, i) => (
+                  <View key={`empty-${i}`} style={styles.dayCol} />
+                ))}
+
+                {days.map((day) => {
+                  const isFuture = day.dateKey > todayStr;
+                  const bg = getColorForPercentage(day.percentage, isFuture);
+                  const isDeep = day.percentage >= 80 && !isFuture;
+                  const isSelected = day.dateKey === selectedDateKey;
+
+                  return (
+                    <TouchableOpacity
+                      key={day.dateKey}
+                      style={[styles.dayCol, isFuture && styles.dayColFuture]}
+                      onPress={() => !isFuture && setSelectedDateKey(day.dateKey)}
+                      disabled={isFuture}
+                      activeOpacity={isFuture ? 1 : 0.7}
+                    >
+                      <View
+                        style={[
+                          styles.cell,
+                          { backgroundColor: bg },
+                          isFuture && styles.cellFuture,
+                          isSelected && styles.cellSelected,
+                        ]}
+                      >
+                        <Text
+                          style={[
+                            styles.dayNum,
+                            isFuture && styles.dayNumFuture,
+                            isDeep && styles.dayNumLight,
+                            isSelected && styles.dayNumSelected,
+                          ]}
+                        >
+                          {day.dayNumber}
+                        </Text>
+                      </View>
+                    </TouchableOpacity>
+                  );
+                })}
+              </>
             );
-          })}
+          })()}
         </View>
       </View>
 
@@ -106,12 +132,9 @@ export const InteractiveCalendarHeatmap: React.FC<InteractiveCalendarHeatmapProp
       <View style={styles.dayDetailsCard}>
         <View style={styles.dayDetailsHeader}>
           <View>
-            <Text style={styles.dayDetailsTag}>
-              {selectedDateKey === todayStr ? 'TODAY • SELECTED DAY' : 'DAY BREAKDOWN'}
-            </Text>
             <Text style={styles.dayDetailsTitle}>
               {selectedDay
-                ? `${selectedDay.dayNumber} ${title?.replace('Devotion Grid', '').trim() || ''}`
+                ? `${selectedDay.dayNumber} ${title || ''}`
                 : selectedDateKey}
             </Text>
           </View>
@@ -211,49 +234,63 @@ const styles = StyleSheet.create({
     height: 10,
     borderRadius: 5,
   },
+  weekHeaderRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    marginBottom: 10,
+    paddingHorizontal: 2,
+  },
+  weekHeaderDay: {
+    width: `${100 / 7}%`,
+    textAlign: 'center',
+    fontSize: 11,
+    fontWeight: '600',
+    color: THEME.colors.textMuted,
+  },
   grid: {
     flexDirection: 'row',
     flexWrap: 'wrap',
-    gap: 8,
-    justifyContent: 'space-between',
+    rowGap: 8,
   },
   dayCol: {
+    width: `${100 / 7}%`,
     alignItems: 'center',
-    gap: 4,
-    width: '12%',
+    justifyContent: 'center',
+    paddingVertical: 2,
+  },
+  dayColFuture: {
+    // Unreached future day wrapper
   },
   cell: {
-    width: 34,
-    height: 34,
-    borderRadius: 17,
+    width: 36,
+    height: 36,
+    borderRadius: 18,
     alignItems: 'center',
     justifyContent: 'center',
     borderWidth: 1.5,
     borderColor: 'transparent',
+  },
+  cellFuture: {
+    backgroundColor: '#F3F2EE',
   },
   cellSelected: {
     borderColor: THEME.colors.primary,
     transform: [{ scale: 1.08 }],
   },
   dayNum: {
-    fontSize: 12,
+    fontSize: 13,
     fontWeight: '600',
     color: THEME.colors.textBody,
+  },
+  dayNumFuture: {
+    color: THEME.colors.textLight,
+    fontWeight: '400',
   },
   dayNumLight: {
     color: '#FFFFFF',
   },
   dayNumSelected: {
     fontWeight: '800',
-  },
-  dayName: {
-    fontSize: 10,
-    color: THEME.colors.textLight,
-    fontWeight: '500',
-  },
-  dayNameSelected: {
-    color: THEME.colors.primary,
-    fontWeight: '700',
   },
   dayDetailsCard: {
     backgroundColor: '#FAF5EF',

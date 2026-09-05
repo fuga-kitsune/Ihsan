@@ -5,16 +5,13 @@ import { HabitCategory, HabitItemUIModel } from '../models/habit.model';
 
 export class HabitRepository {
   async initHabitsTable(): Promise<void> {
-    const db = await getDatabase();
-    try {
-      await db.execAsync('ALTER TABLE habits ADD COLUMN required_streak INTEGER DEFAULT 0');
-    } catch {}
+    // Handled by core database initialization in db.ts
   }
 
-  async getHabitsForDate(dateKey: string, currentStreak: number = 0): Promise<HabitItemUIModel[]> {
-    await this.initHabitsTable();
+  async getHabitsForDate(dateKey: string): Promise<HabitItemUIModel[]> {
     const db = await getDatabase();
     const safeDate = String(dateKey || getTodayDateString());
+    const streakAsOfDate = await this.calculateStreak(safeDate);
 
     const rows = await db.getAllAsync<{
       id: string;
@@ -40,12 +37,12 @@ export class HabitRepository {
       LEFT JOIN habit_logs hl ON h.id = hl.habit_id AND hl.date_key = ?
       ORDER BY (CASE WHEN hl.completed = 1 THEN 1 ELSE 0 END) ASC, (CASE WHEN h.required_streak > ? THEN 1 ELSE 0 END) ASC, h.sort_order ASC
       `,
-      [safeDate, currentStreak]
+      [safeDate, streakAsOfDate]
     );
 
     return rows.map((row) => {
       const required = row.required_streak || 0;
-      const isLocked = currentStreak < required;
+      const isLocked = streakAsOfDate < required;
       return {
         id: row.id,
         name: row.name,
@@ -76,7 +73,7 @@ export class HabitRepository {
     }
   }
 
-  async calculateStreak(): Promise<number> {
+  async calculateStreak(asOfDateKey?: string): Promise<number> {
     const db = await getDatabase();
     const rows = await db.getAllAsync<{ date_key: string; count: number }>(
       `
@@ -91,19 +88,26 @@ export class HabitRepository {
     const completedMap = new Map<string, number>();
     rows.forEach((r: { date_key: string; count: number }) => completedMap.set(r.date_key, r.count));
 
-    const today = new Date();
-    const todayKey = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}-${String(today.getDate()).padStart(2, '0')}`;
-    const todayCount = completedMap.get(todayKey) || 0;
+    let targetDate = new Date();
+    if (asOfDateKey) {
+      const parts = asOfDateKey.split('-');
+      if (parts.length === 3) {
+        targetDate = new Date(parseInt(parts[0], 10), parseInt(parts[1], 10) - 1, parseInt(parts[2], 10));
+      }
+    }
+
+    const targetKey = `${targetDate.getFullYear()}-${String(targetDate.getMonth() + 1).padStart(2, '0')}-${String(targetDate.getDate()).padStart(2, '0')}`;
+    const targetCount = completedMap.get(targetKey) || 0;
 
     let streak = 0;
-    const date = new Date(today);
+    const date = new Date(targetDate);
 
-    // If today is completed (>= 5 deeds), include today in streak
-    if (todayCount >= 5) {
+    // If the target day is completed (>= 5 deeds), include it in streak
+    if (targetCount >= 5) {
       streak++;
       date.setDate(date.getDate() - 1);
     } else {
-      // If today is not completed yet, calculate existing active streak starting from yesterday
+      // If not completed yet, calculate existing active streak starting from the previous day
       date.setDate(date.getDate() - 1);
     }
 

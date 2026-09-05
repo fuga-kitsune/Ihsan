@@ -17,7 +17,6 @@ export const WeeklyFocusGoalsHistory: React.FC<WeeklyFocusGoalsHistoryProps> = (
 
   return (
     <View style={styles.card}>
-      <Text style={styles.tag}>GOAL ARCHIVE</Text>
       <Text style={styles.title}>Weekly Goals History</Text>
 
       {goals.length === 0 ? (
@@ -98,7 +97,7 @@ const styles = StyleSheet.create({
     color: THEME.colors.primary,
   },
   statusBadgeInProgress: {
-    color: '#B45309',
+    color: THEME.colors.primary,
   },
   itemTitle: {
     fontSize: 14,

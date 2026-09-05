@@ -18,7 +18,6 @@ export const TodayDeedsSnapshotCard: React.FC<TodayDeedsSnapshotCardProps> = ({ 
     <View style={styles.card}>
       <View style={styles.topRow}>
         <View>
-          <Text style={styles.tag}>DEEDS AUDIT</Text>
           <Text style={styles.title}>Day's Accountability</Text>
         </View>
         <View style={[styles.badge, percentage >= 80 ? styles.badgeHigh : styles.badgeNormal]}>

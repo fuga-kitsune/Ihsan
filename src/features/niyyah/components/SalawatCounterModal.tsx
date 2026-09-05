@@ -12,36 +12,42 @@ interface SalawatCounterModalProps {
 
 export const SalawatCounterModal: React.FC<SalawatCounterModalProps> = ({
   visible,
-  quest,
+  quest: initialQuest,
   onClose,
 }) => {
+  const quests = useNiyyahStore((state) => state.quests);
+  const quest = quests.find((q) => q.id === initialQuest.id) || initialQuest;
+
   const incrementQuest = useNiyyahStore((state) => state.incrementQuest);
   const resetQuest = useNiyyahStore((state) => state.resetQuest);
-
-  const [sessionTaps, setSessionTaps] = useState(0);
 
   const handleTap = () => {
     if (quest.currentCount >= quest.targetCount) return;
 
+    const nextCount = quest.currentCount + 1;
+    const justCompleted = nextCount >= quest.targetCount;
+
+    // Trigger haptic vibration immediately
     if (Platform.OS !== 'web') {
       try {
-        Vibration.vibrate(10);
-      } catch {}
+        if (justCompleted) {
+          Vibration.vibrate([0, 80, 80, 120]);
+        } else {
+          // Standard tactile bump
+          Vibration.vibrate(25);
+        }
+      } catch (err) {
+        console.warn('Vibration error', err);
+      }
     }
 
     incrementQuest(quest.id, 1);
-    setSessionTaps((prev) => prev + 1);
-  };
-
-  const handleAddBatch = (amount: number) => {
-    if (quest.currentCount >= quest.targetCount) return;
-    const toAdd = Math.min(amount, quest.targetCount - quest.currentCount);
-    incrementQuest(quest.id, toAdd);
-    setSessionTaps((prev) => prev + toAdd);
   };
 
   const isCompleted = quest.currentCount >= quest.targetCount;
   const progressPercent = Math.min(Math.round((quest.currentCount / quest.targetCount) * 100), 100);
+
+  const isIstighfar = quest.id === 'quest_istighfar' || quest.title.toLowerCase().includes('istighfar');
 
   return (
     <Modal visible={visible} animationType="fade" transparent onRequestClose={onClose}>
@@ -50,21 +56,27 @@ export const SalawatCounterModal: React.FC<SalawatCounterModalProps> = ({
           {/* Header */}
           <View style={styles.header}>
             <View>
-              <Text style={styles.tag}>FRIDAY & WEEKLY SUNNAH</Text>
-              <Text style={styles.title}>1,000 Salawat Counter</Text>
+              <Text style={styles.tag}>
+                {isIstighfar ? 'DAILY SUNNAH' : 'FRIDAY & WEEKLY SUNNAH'}
+              </Text>
+              <Text style={styles.title}>
+                {isIstighfar ? '100x Daily Istighfar' : '1,000 Salawat Counter'}
+              </Text>
             </View>
             <TouchableOpacity onPress={onClose} hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}>
               <Text style={styles.closeText}>✕</Text>
             </TouchableOpacity>
           </View>
 
-          {/* Salawat text preview */}
+          {/* Remembrance text preview */}
           <View style={styles.arabicBox}>
             <Text style={styles.arabicText}>
-              اللَّهُمَّ صَلِّ عَلَى مُحَمَّدٍ وَعَلَى آلِ مُحَمَّدٍ
+              {isIstighfar ? 'أَسْتَغْفِرُ اللَّهَ وَأَتُوبُ إِلَيْهِ' : 'اللَّهُمَّ صَلِّ عَلَى مُحَمَّدٍ وَعَلَى آلِ مُحَمَّدٍ'}
             </Text>
             <Text style={styles.transliteration}>
-              Allahumma salli 'ala Muhammad wa 'ala ali Muhammad
+              {isIstighfar
+                ? "Astaghfirullaha wa atubu ilayh"
+                : "Allahumma salli 'ala Muhammad wa 'ala ali Muhammad"}
             </Text>
           </View>
 
@@ -72,16 +84,19 @@ export const SalawatCounterModal: React.FC<SalawatCounterModalProps> = ({
           <TouchableOpacity
             style={[styles.tapCircle, isCompleted && styles.tapCircleCompleted]}
             onPress={handleTap}
-            activeOpacity={0.8}
+            activeOpacity={0.85}
             disabled={isCompleted}
           >
             <Text style={[styles.tapCount, isCompleted && styles.tapCountCompleted]}>
               {quest.currentCount}
             </Text>
             <Text style={styles.tapTarget}>of {quest.targetCount}</Text>
-            <Text style={styles.tapHint}>
-              {isCompleted ? 'Finished! Alhamdulillah' : 'Tap to Count'}
-            </Text>
+
+            <View style={[styles.statusBadge, isCompleted && styles.statusBadgeCompleted]}>
+              <Text style={[styles.statusBadgeText, isCompleted && styles.statusBadgeTextCompleted]}>
+                {isCompleted ? 'Completed' : 'Tap to Count'}
+              </Text>
+            </View>
           </TouchableOpacity>
 
           {/* Progress Bar */}
@@ -98,34 +113,9 @@ export const SalawatCounterModal: React.FC<SalawatCounterModalProps> = ({
             <View style={styles.progressLabelRow}>
               <Text style={styles.progressPercent}>{progressPercent}% completed</Text>
               <Text style={styles.remainingText}>
-                {isCompleted ? 'Goal reached' : `${quest.targetCount - quest.currentCount} remaining`}
+                {isCompleted ? 'Goal fulfilled' : `${quest.targetCount - quest.currentCount} remaining`}
               </Text>
             </View>
-          </View>
-
-          {/* Quick Batch Buttons & Reset */}
-          <View style={styles.footerRow}>
-            {!isCompleted ? (
-              <View style={styles.batchRow}>
-                <TouchableOpacity style={styles.batchBtn} onPress={() => handleAddBatch(10)}>
-                  <Text style={styles.batchBtnText}>+10</Text>
-                </TouchableOpacity>
-                <TouchableOpacity style={styles.batchBtn} onPress={() => handleAddBatch(33)}>
-                  <Text style={styles.batchBtnText}>+33</Text>
-                </TouchableOpacity>
-                <TouchableOpacity style={styles.batchBtn} onPress={() => handleAddBatch(100)}>
-                  <Text style={styles.batchBtnText}>+100</Text>
-                </TouchableOpacity>
-              </View>
-            ) : (
-              <TouchableOpacity
-                style={styles.resetBtn}
-                onPress={() => resetQuest(quest.id)}
-                activeOpacity={0.7}
-              >
-                <Text style={styles.resetBtnText}>Reset Counter</Text>
-              </TouchableOpacity>
-            )}
           </View>
         </View>
       </View>
@@ -199,27 +189,28 @@ const styles = StyleSheet.create({
     textAlign: 'center',
   },
   tapCircle: {
-    width: 170,
-    height: 170,
-    borderRadius: 85,
+    width: 180,
+    height: 180,
+    borderRadius: 90,
     backgroundColor: '#FAF5EF',
-    borderWidth: 4,
+    borderWidth: 3,
     borderColor: THEME.colors.primary,
     alignItems: 'center',
     justifyContent: 'center',
-    marginVertical: 10,
+    marginVertical: 12,
     elevation: 2,
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.08,
     shadowRadius: 6,
+    gap: 2,
   },
   tapCircleCompleted: {
-    backgroundColor: '#E8F5E9',
+    backgroundColor: '#F8FCF9',
     borderColor: '#10B981',
   },
   tapCount: {
-    fontSize: 38,
+    fontSize: 44,
     fontWeight: '700',
     color: THEME.colors.primary,
     letterSpacing: -1,
@@ -228,18 +219,29 @@ const styles = StyleSheet.create({
     color: '#10B981',
   },
   tapTarget: {
-    fontSize: 12,
+    fontSize: 13,
     color: THEME.colors.textMuted,
     fontWeight: '500',
-    marginTop: -2,
+    marginBottom: 4,
   },
-  tapHint: {
-    fontSize: 11,
-    color: THEME.colors.accentGold,
-    fontWeight: '600',
-    marginTop: 6,
-    textTransform: 'uppercase',
-    letterSpacing: 0.8,
+  statusBadge: {
+    backgroundColor: '#FEF3C7',
+    paddingHorizontal: 10,
+    paddingVertical: 3,
+    borderRadius: THEME.radius.full,
+    marginTop: 2,
+  },
+  statusBadgeCompleted: {
+    backgroundColor: '#DCFCE7',
+  },
+  statusBadgeText: {
+    fontSize: 10,
+    fontWeight: '700',
+    color: '#B45309',
+    letterSpacing: 0.6,
+  },
+  statusBadgeTextCompleted: {
+    color: '#166534',
   },
   progressContainer: {
     width: '100%',
@@ -278,33 +280,14 @@ const styles = StyleSheet.create({
     marginTop: 20,
     width: '100%',
   },
-  batchRow: {
-    flexDirection: 'row',
-    gap: 8,
-    justifyContent: 'center',
-    width: '100%',
-  },
-  batchBtn: {
-    flex: 1,
-    backgroundColor: THEME.colors.bgCard,
-    paddingVertical: 10,
-    borderRadius: THEME.radius.md,
-    alignItems: 'center',
-    justifyContent: 'center',
-    borderWidth: 1,
-    borderColor: '#ECEAE6',
-  },
-  batchBtnText: {
-    fontSize: 13,
-    fontWeight: '600',
-    color: THEME.colors.primary,
-  },
   resetBtn: {
-    backgroundColor: '#F3F4F6',
+    backgroundColor: '#FAF5EF',
     paddingVertical: 12,
     borderRadius: THEME.radius.md,
     alignItems: 'center',
     width: '100%',
+    borderWidth: 1,
+    borderColor: '#EFE8DE',
   },
   resetBtnText: {
     fontSize: 13,

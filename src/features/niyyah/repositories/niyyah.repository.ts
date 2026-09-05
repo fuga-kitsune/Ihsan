@@ -3,22 +3,7 @@ import { NiyyahItem, NiyyahTimeframe } from '../models/niyyah.model';
 
 export class NiyyahRepository {
   async initNiyyahTable(): Promise<void> {
-    const db = await getDatabase();
-    await db.execAsync(`
-      CREATE TABLE IF NOT EXISTS niyyahs (
-        id TEXT PRIMARY KEY NOT NULL,
-        title TEXT NOT NULL,
-        timeframe TEXT NOT NULL,
-        category TEXT NOT NULL,
-        target_date TEXT NOT NULL,
-        is_completed INTEGER DEFAULT 0,
-        created_at INTEGER NOT NULL,
-        completed_at INTEGER
-      );
-    `);
-    try {
-      await db.execAsync('ALTER TABLE niyyahs ADD COLUMN completed_at INTEGER');
-    } catch { }
+    // Handled by core database initialization
   }
 
   // Helper to get current week key (e.g., 2026-W36)

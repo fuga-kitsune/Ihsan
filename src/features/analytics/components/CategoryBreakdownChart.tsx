@@ -10,7 +10,6 @@ interface CategoryBreakdownChartProps {
 export const CategoryBreakdownChart: React.FC<CategoryBreakdownChartProps> = ({ breakdown }) => {
   return (
     <View style={styles.card}>
-      <Text style={styles.tag}>PILLARS OF DEVOTION</Text>
       <Text style={styles.title}>Deeds Distribution</Text>
 
       <View style={styles.list}>

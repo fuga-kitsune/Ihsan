@@ -50,7 +50,7 @@ export const useTrackerStore = create<TrackerState>((set, get) => ({
 
     try {
       const streak = await habitRepository.calculateStreak();
-      const items = await habitRepository.getHabitsForDate(targetDate, streak);
+      const items = await habitRepository.getHabitsForDate(targetDate);
       const weeklyCompletion = await habitRepository.getWeeklyCompletionStatus();
       const activeItems = items.filter((h) => !h.isLocked);
       const completedCount = activeItems.filter((h) => h.isCompleted).length;
@@ -93,8 +93,9 @@ export const useTrackerStore = create<TrackerState>((set, get) => ({
 
     // Optimistic UI Update for instant feedback
     const updated = habits.map((h) => (h.id === habitId ? { ...h, isCompleted: newStatus } : h));
-    const completedCount = updated.filter((h) => h.isCompleted).length;
-    const totalCount = updated.length;
+    const activeItems = updated.filter((h) => !h.isLocked);
+    const completedCount = activeItems.filter((h) => h.isCompleted).length;
+    const totalCount = activeItems.length;
     const percentage = totalCount > 0 ? Math.round((completedCount / totalCount) * 100) : 0;
 
     const updatedWeekly = {
@@ -108,6 +109,7 @@ export const useTrackerStore = create<TrackerState>((set, get) => ({
       stats: {
         ...state.stats,
         completedCount,
+        totalCount,
         percentage,
       },
     }));

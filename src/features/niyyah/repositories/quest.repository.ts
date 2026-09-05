@@ -3,49 +3,24 @@ import { SpiritualQuest, INITIAL_QUESTS } from '../models/quest.model';
 
 export class QuestRepository {
   async initQuestTable(): Promise<void> {
-    const db = await getDatabase();
-    await db.execAsync(`
-      CREATE TABLE IF NOT EXISTS spiritual_quests (
-        id TEXT PRIMARY KEY NOT NULL,
-        title TEXT NOT NULL,
-        category TEXT NOT NULL,
-        period TEXT NOT NULL,
-        description TEXT NOT NULL,
-        benefit TEXT NOT NULL,
-        target_count INTEGER NOT NULL,
-        current_count INTEGER DEFAULT 0,
-        is_completed INTEGER DEFAULT 0,
-        unit TEXT NOT NULL,
-        icon_name TEXT NOT NULL,
-        required_streak INTEGER DEFAULT 0
-      );
-    `);
-
-    try {
-      await db.execAsync('ALTER TABLE spiritual_quests ADD COLUMN required_streak INTEGER DEFAULT 0');
-    } catch {}
-
-    // Seed or sync defaults
-    for (const q of INITIAL_QUESTS) {
-      const exists = await db.getFirstAsync<{ id: string }>('SELECT id FROM spiritual_quests WHERE id = ?', [q.id]);
-      if (!exists) {
-        await db.runAsync(
-          `INSERT INTO spiritual_quests (id, title, category, period, description, benefit, target_count, current_count, is_completed, unit, icon_name, required_streak)
-           VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
-          [q.id, q.title, q.category, q.period, q.description, q.benefit, q.targetCount, q.currentCount, q.isCompleted ? 1 : 0, q.unit, q.iconName, q.requiredStreak ?? 0]
-        );
-      } else {
-        await db.runAsync(
-          'UPDATE spiritual_quests SET title = ?, description = ?, target_count = ?, unit = ?, required_streak = ? WHERE id = ?',
-          [q.title, q.description, q.targetCount, q.unit, q.requiredStreak ?? 0, q.id]
-        );
-      }
-    }
+    // Handled by core database initialization
   }
 
   async getAllQuests(currentStreak: number = 0): Promise<SpiritualQuest[]> {
     await this.initQuestTable();
     const db = await getDatabase();
+    const today = new Date().toISOString().split('T')[0];
+
+    // Auto-reset daily quests if their last_updated_date is from a previous day
+    await db.runAsync(
+      `UPDATE spiritual_quests
+       SET current_count = 0, is_completed = 0
+       WHERE (period = 'Daily' OR id = 'quest_istighfar')
+         AND last_updated_date != ''
+         AND last_updated_date != ?`,
+      [today]
+    );
+
     const rows = await db.getAllAsync<{
       id: string;
       title: string;
@@ -59,6 +34,7 @@ export class QuestRepository {
       unit: string;
       icon_name: string;
       required_streak: number | null;
+      last_updated_date: string | null;
     }>('SELECT * FROM spiritual_quests ORDER BY is_completed ASC, required_streak ASC, period DESC');
 
     return rows.map((r) => {
@@ -78,12 +54,15 @@ export class QuestRepository {
         iconName: r.icon_name,
         requiredStreak: reqStreak,
         isLocked,
+        lastUpdatedDate: r.last_updated_date || undefined,
       };
     });
   }
 
   async incrementQuest(id: string, amount: number = 1): Promise<SpiritualQuest | null> {
     const db = await getDatabase();
+    const today = new Date().toISOString().split('T')[0];
+
     const quest = await db.getFirstAsync<{
       id: string;
       title: string;
@@ -96,16 +75,23 @@ export class QuestRepository {
       is_completed: number;
       unit: string;
       icon_name: string;
+      last_updated_date: string | null;
     }>('SELECT * FROM spiritual_quests WHERE id = ?', [id]);
 
     if (!quest) return null;
 
-    const newCount = Math.max(0, Math.min(quest.current_count + amount, quest.target_count));
+    // Check if daily quest needs rollover reset before incrementing
+    let startCount = quest.current_count;
+    if ((quest.period === 'Daily' || quest.id === 'quest_istighfar') && quest.last_updated_date && quest.last_updated_date !== today) {
+      startCount = 0;
+    }
+
+    const newCount = Math.max(0, Math.min(startCount + amount, quest.target_count));
     const isCompleted = newCount >= quest.target_count ? 1 : 0;
 
     await db.runAsync(
-      'UPDATE spiritual_quests SET current_count = ?, is_completed = ? WHERE id = ?',
-      [newCount, isCompleted, id]
+      'UPDATE spiritual_quests SET current_count = ?, is_completed = ?, last_updated_date = ? WHERE id = ?',
+      [newCount, isCompleted, today, id]
     );
 
     return {
@@ -117,6 +103,7 @@ export class QuestRepository {
       isCompleted: isCompleted === 1,
       unit: quest.unit,
       iconName: quest.icon_name,
+      lastUpdatedDate: today,
     };
   }
 

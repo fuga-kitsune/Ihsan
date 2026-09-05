@@ -25,9 +25,9 @@ export const SetNiyyahModal: React.FC<SetNiyyahModalProps> = ({
     'Night Prayer (Tahajjud) twice this week',
     'Pray all 12 Sunnah Rawatib daily',
     'Fast Monday & Thursday',
-    '100x Daily Istighfar & Tawbah',
     'Salatul Dhuha every morning',
     'Guard the tongue from harsh speech',
+    'Give a quiet act of Sadaqah',
   ];
 
   const isGoalCommitted = (goalText: string) => {

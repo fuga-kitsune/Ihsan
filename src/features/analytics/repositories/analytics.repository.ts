@@ -161,7 +161,7 @@ export class AnalyticsRepository {
       {
         id: 'shukr',
         arabicTitle: 'Alhamdulillah',
-        label: 'Contentment & Shukr',
+        label: 'Grateful & Peaceful',
         count: heartCounts.shukr,
         percentage: Math.round((heartCounts.shukr / totalRecordedHearts) * 100),
         color: '#1E3A2F',
@@ -177,7 +177,7 @@ export class AnalyticsRepository {
       {
         id: 'himmah',
         arabicTitle: 'Himmah',
-        label: 'High Devotion Energy',
+        label: 'Energized & Focused',
         count: heartCounts.himmah,
         percentage: Math.round((heartCounts.himmah / totalRecordedHearts) * 100),
         color: '#0D9488',
@@ -185,7 +185,7 @@ export class AnalyticsRepository {
       {
         id: 'sabr',
         arabicTitle: 'Sabr',
-        label: 'Patience in Hardship',
+        label: 'Patient in Trials',
         count: heartCounts.sabr,
         percentage: Math.round((heartCounts.sabr / totalRecordedHearts) * 100),
         color: '#6366F1',

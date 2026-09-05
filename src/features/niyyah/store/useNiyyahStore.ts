@@ -88,20 +88,35 @@ export const useNiyyahStore = create<NiyyahState>((set, get) => ({
   },
 
   incrementQuest: async (id: string, amount: number = 1) => {
+    // 1. Optimistic instant state update for immediate 60fps responsiveness
+    const currentQuests = get().quests;
+    const target = currentQuests.find((q) => q.id === id);
+    if (target) {
+      const nextCount = Math.max(0, Math.min(target.currentCount + amount, target.targetCount));
+      const isCompleted = nextCount >= target.targetCount;
+      const updatedQuests = currentQuests.map((q) =>
+        q.id === id ? { ...q, currentCount: nextCount, isCompleted } : q
+      );
+      set({ quests: updatedQuests });
+    }
+
+    // 2. Persist to SQLite in background
     try {
       await questRepository.incrementQuest(id, amount);
-      const quests = await questRepository.getAllQuests();
-      set({ quests });
     } catch (e) {
-      console.error('Failed to update quest', e);
+      console.error('Failed to update quest in database', e);
     }
   },
 
   resetQuest: async (id: string) => {
+    const currentQuests = get().quests;
+    const updatedQuests = currentQuests.map((q) =>
+      q.id === id ? { ...q, currentCount: 0, isCompleted: false } : q
+    );
+    set({ quests: updatedQuests });
+
     try {
       await questRepository.resetQuest(id);
-      const quests = await questRepository.getAllQuests();
-      set({ quests });
     } catch (e) {
       console.error('Failed to reset quest', e);
     }

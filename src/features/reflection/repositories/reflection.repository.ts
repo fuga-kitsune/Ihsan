@@ -15,9 +15,6 @@ export class ReflectionRepository {
   async getReflectionForDate(dateKey: string): Promise<ReflectionUIModel> {
     const db = await getDatabase();
     const safeDate = String(dateKey || getTodayDateString());
-    try {
-      await db.execAsync('ALTER TABLE reflections ADD COLUMN heart_state TEXT DEFAULT ""');
-    } catch { }
 
     const row = await db.getFirstAsync<{ date_key: string; content: string; heart_state?: string; updated_at: number }>(
       'SELECT date_key, content, heart_state, updated_at FROM reflections WHERE date_key = ?',

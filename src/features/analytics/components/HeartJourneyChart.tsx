@@ -10,7 +10,6 @@ interface HeartJourneyChartProps {
 export const HeartJourneyChart: React.FC<HeartJourneyChartProps> = ({ distribution }) => {
   return (
     <View style={styles.card}>
-      <Text style={styles.tag}>SPIRITUAL STATES</Text>
       <Text style={styles.title}>Heart State Journey</Text>
 
       <View style={styles.list}>

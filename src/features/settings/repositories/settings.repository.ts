@@ -4,13 +4,6 @@ import { AppSettings, DEFAULT_SETTINGS } from '../models/settings.model';
 export class SettingsRepository {
   async getSettings(): Promise<AppSettings> {
     const db = await getDatabase();
-    await db.execAsync(`
-      CREATE TABLE IF NOT EXISTS settings (
-        key TEXT PRIMARY KEY NOT NULL,
-        value TEXT NOT NULL
-      );
-    `);
-
     const rows = await db.getAllAsync<{ key: string; value: string }>('SELECT key, value FROM settings');
     const map = new Map<string, string>();
     rows.forEach((r: { key: string; value: string }) => map.set(r.key, r.value));
