@@ -7,36 +7,204 @@
   <style>
     body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; line-height: 1.6; color: #1C1917; background-color: #FAFAF9; max-width: 800px; margin: 0 auto; padding: 40px 20px; }
     h1 { color: #1E3A2F; font-size: 28px; margin-bottom: 8px; }
-    h2 { color: #1E3A2F; font-size: 20px; margin-top: 30px; }
+    h2 { color: #1E3A2F; font-size: 20px; margin-top: 32px; margin-bottom: 12px; }
+    h3 { color: #1E3A2F; font-size: 16px; margin-top: 24px; margin-bottom: 8px; }
     p, li { color: #44403C; font-size: 15px; }
+    ul, ol { padding-left: 24px; margin-bottom: 16px; }
+    li { margin-bottom: 8px; }
     .updated { color: #78716C; font-size: 13px; margin-bottom: 24px; }
-    .highlight { background: #E7E5E4; padding: 14px 18px; border-radius: 8px; font-weight: 500; }
+    .highlight { background: #E7E5E4; padding: 14px 18px; border-radius: 8px; font-weight: 500; margin: 20px 0; }
     a { color: #1E3A2F; text-decoration: none; font-weight: 600; }
+    a:hover { text-decoration: underline; }
+    hr { border: 0; height: 1px; background: #E7E5E4; margin: 32px 0; }
+    table { width: 100%; border-collapse: collapse; margin: 20px 0; font-size: 14px; background: #FFFFFF; border-radius: 8px; overflow: hidden; border: 1px solid #E7E5E4; }
+    th, td { padding: 12px 14px; text-align: left; vertical-align: top; border-bottom: 1px solid #E7E5E4; }
+    th { background: #F5F5F4; color: #1E3A2F; font-weight: 600; }
+    tr:last-child td { border-bottom: none; }
+    code { font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace; font-size: 13px; background: #F5F5F4; padding: 2px 6px; border-radius: 4px; color: #1C1917; }
   </style>
 </head>
 <body>
   <p><a href="index.html">&larr; Back to Legal Overview</a></p>
   <h1>Privacy Policy for Ihsan</h1>
-  <div class="updated">Last Updated: September 2026</div>
-  <div class="highlight">
-    <strong>Summary:</strong> Ihsan is built privacy-first. All your daily deeds, spiritual reflections, and check-ins are stored 100% locally on your device. We do not collect, transmit, or sell any personal data.
-  </div>
-  <h2>1. Information We Do Not Collect</h2>
-  <p>Ihsan operates strictly as a private, offline personal reflection and habit tracking application:</p>
+  <div class="updated">Effective Date: September 2026 &bull; Last Updated: October 2026</div>
+
+  <p>At <strong>Ihsan</strong> (&ldquo;the App&rdquo;, &ldquo;we&rdquo;, &ldquo;our&rdquo;, or &ldquo;us&rdquo;), developed and published by <strong>鬼 musa</strong>, we consider your personal privacy and your spiritual life to be a sacred trust (<em>Amanah</em>). Our application is built from the ground up on the principle of <strong>privacy-by-design</strong> and a <strong>local-first architecture</strong>: your prayers, spiritual reflections, daily habits, Quran tracking, and personal goals belong exclusively to you and Allah.</p>
+
+  <p>This Privacy Policy describes in comprehensive detail what information is collected, how it is handled, the limited circumstances under which third-party infrastructure is utilized, and your absolute legal rights regarding your data under global regulations (including the General Data Protection Regulation / GDPR, the California Consumer Privacy Act / CCPA/CPRA, and Google Play Developer Policies).</p>
+
+  <hr>
+
+  <h2>1. Summary of Core Privacy Guarantees</h2>
   <ul>
-    <li>We do <strong>not</strong> require user registration, email addresses, or phone numbers.</li>
-    <li>We do <strong>not</strong> collect personal tracking information or location data.</li>
-    <li>We do <strong>not</strong> track usage with third-party analytics or behavioral cookies.</li>
-    <li>We do <strong>not</strong> display advertisements.</li>
+    <li><strong>Local-First Architecture</strong>: 100% of your daily deed logs, spiritual reflections, habit goals, streak counts, and journal entries are stored strictly on your local device in sandboxed storage (SQLite database).</li>
+    <li><strong>Zero Third-Party Advertising &amp; Zero Data Brokers</strong>: We do not serve advertisements, we do not integrate marketing or advertising SDKs, and we will never sell, lease, or monetize your personal information.</li>
+    <li><strong>Special Category (Religious) Data Protection</strong>: Under Article 9 of the GDPR, religious convictions are classified as special category data. Ihsan does not harvest, analyze, profile, or transmit your spiritual activity to our own servers.</li>
+    <li><strong>Private Cloud Backup (User-Controlled Google Drive)</strong>: When you choose to use Cloud Backup, data is encrypted and synced directly to your own personal Google Drive in an isolated, sandboxed application directory (<code>drive.appdata</code>). No intermediary servers intercept, read, or store your backups.</li>
+    <li><strong>No Direct Financial Storage</strong>: All payments, billing details, and subscription renewals are handled through the Google Play Store and RevenueCat. We never collect or store your payment card numbers, banking details, or billing addresses.</li>
   </ul>
-  <h2>2. Local Data Storage & Persistence</h2>
-  <p>All data generated within the app—including completed daily deeds, heart state check-ins, written evening reflections, and weekly/monthly intentions (Niyyah)—is stored exclusively on your device's local SQLite database.</p>
-  <p>This data never leaves your device unless you explicitly choose to export or share it using the built-in backup feature.</p>
-  <h2>3. Data Deletion & Control</h2>
-  <p>You have full ownership of your data. You may at any time clear or reset your logs using the "Reset Local Data" feature in Settings, or by uninstalling the application.</p>
-  <h2>4. Children's Privacy</h2>
-  <p>Ihsan does not collect any personally identifiable information from children under 13.</p>
-  <h2>5. Contact Us</h2>
-  <p>If you have any questions regarding this Privacy Policy, you may contact the development team via our public repository.</p>
+
+  <hr>
+
+  <h2>2. Information We Handle and Process</h2>
+  <p>We categorize the data associated with your use of Ihsan into three distinct tiers:</p>
+
+  <h3>2.1 Information Stored Strictly On Your Device (Local Data)</h3>
+  <p>The following information is created through your use of the App and resides entirely on your device's internal application storage:</p>
+  <ul>
+    <li><strong>Daily Deed Records</strong>: Timestamps, completion status, deed categories (Fard, Sunnah, Nafl, Custom), and streak counts.</li>
+    <li><strong>Spiritual Reflections &amp; Journaling</strong>: Personal notes, reflections, gratitude logs, and custom entries.</li>
+    <li><strong>Habit Configurations &amp; Goals</strong>: Target deed counts, reminder schedules, and personalized routines.</li>
+    <li><strong>Local Application Preferences</strong>: Interface themes (light/dark mode), audio/vibration feedback toggles, and notification preferences.</li>
+  </ul>
+  <p><em>We have no technical access to this data unless you voluntarily export it or provide it to customer support for troubleshooting.</em></p>
+
+  <h3>2.2 Optional Cloud Account Information (Google Sign-In &amp; Drive Sync)</h3>
+  <p>If you elect to sign in with Google to enable cloud backup or synchronize Pro entitlements across multiple Android devices:</p>
+  <ul>
+    <li><strong>Profile Identification</strong>: We receive your basic Google account profile information (display name, email address, and avatar URL) via official Google Identity Services. This is used solely to identify your active session within the App interface and correlate subscription entitlements.</li>
+    <li><strong>Google Drive Storage (<code>drive.appdata</code> / <code>drive.file</code>)</strong>: The App requests restricted access strictly to its own sandboxed application folder on your Google Drive. The App has <strong>zero visibility or access</strong> to your personal files, photos, emails, or other documents on Google Drive.</li>
+  </ul>
+
+  <h3>2.3 Subscription &amp; Purchase Information</h3>
+  <p>When you purchase an Ihsan Pro subscription or activate a free trial:</p>
+  <ul>
+    <li><strong>Google Play In-App Billing</strong>: Financial transactions are processed exclusively by Google Play. We do not access or store credit/debit card numbers or bank information.</li>
+    <li><strong>Subscription Validation (RevenueCat)</strong>: We utilize RevenueCat, an industry-standard in-app subscription infrastructure provider, to validate subscription receipts, manage cross-device entitlement access, and process plan renewals. RevenueCat processes an anonymous App User ID, transaction identifier, purchase date, and product identifier.</li>
+  </ul>
+
+  <hr>
+
+  <h2>3. Device Permissions and How They Are Used</h2>
+  <p>Ihsan requests only the minimum Android permissions necessary to provide its features:</p>
+  <div style="overflow-x: auto;">
+    <table>
+      <thead>
+        <tr>
+          <th>Permission</th>
+          <th>Technical Identifier</th>
+          <th>Purpose</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td><strong>Notifications</strong></td>
+          <td><code>android.permission.POST_NOTIFICATIONS</code></td>
+          <td>Used strictly to trigger scheduled local prayer reminders, daily habit alerts, and Friday Sunnah notifications set by you. All notifications are scheduled locally on the device without push-tracking servers.</td>
+        </tr>
+        <tr>
+          <td><strong>Internet Access</strong></td>
+          <td><code>android.permission.INTERNET</code>,<br><code>android.permission.ACCESS_NETWORK_STATE</code></td>
+          <td>Required to authenticate with Google Sign-In, sync backups directly with your personal Google Drive, check subscription status via RevenueCat, and verify app version updates.</td>
+        </tr>
+        <tr>
+          <td><strong>Haptic Feedback</strong></td>
+          <td><code>android.permission.VIBRATE</code></td>
+          <td>Provides subtle, satisfying tactile feedback when marking deeds complete or interacting with counters.</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <hr>
+
+  <h2>4. Third-Party Service Providers</h2>
+  <p>We do not share your data with third parties for commercial or marketing purposes. The App integrates only the following trusted infrastructure service providers to deliver essential app functions:</p>
+  <ol>
+    <li>
+      <strong>Google LLC (Google Play Services, Google Sign-In, Google Drive)</strong>
+      <ul>
+        <li><strong>Purpose</strong>: App distribution, Google account authentication, user-controlled cloud backup storage, and in-app billing.</li>
+        <li><strong>Privacy Policy</strong>: <a href="https://policies.google.com/privacy" target="_blank" rel="noopener noreferrer">Google Privacy Policy</a></li>
+      </ul>
+    </li>
+    <li>
+      <strong>RevenueCat, Inc.</strong>
+      <ul>
+        <li><strong>Purpose</strong>: In-app purchase receipt validation, subscription lifecycle management, and restore-purchases functionality.</li>
+        <li><strong>Data Handled</strong>: Anonymous App User ID, transaction timestamps, subscription state, device locale.</li>
+        <li><strong>Privacy Policy</strong>: <a href="https://www.revenuecat.com/privacy" target="_blank" rel="noopener noreferrer">RevenueCat Privacy Policy</a></li>
+      </ul>
+    </li>
+  </ol>
+
+  <hr>
+
+  <h2>5. Legal Bases for Processing (GDPR &amp; International Frameworks)</h2>
+  <p>If you are a resident of the European Economic Area (EEA), United Kingdom, or Switzerland, our processing of your personal data is governed by the following legal bases:</p>
+  <ul>
+    <li><strong>Consent (Article 6(1)(a) &amp; Article 9(2)(a) GDPR)</strong>: You provide explicit consent when choosing to sign in with Google, enabling notifications, or logging spiritual habits and journal reflections.</li>
+    <li><strong>Contractual Necessity (Article 6(1)(b) GDPR)</strong>: Processing subscription entitlements and providing cloud backup services requested by you.</li>
+    <li><strong>Legitimate Interests (Article 6(1)(f) GDPR)</strong>: Preventing fraudulent abuse of free trials or the hardship assistance program, and maintaining app security and stability.</li>
+  </ul>
+
+  <hr>
+
+  <h2>6. Your Legal Data Rights</h2>
+  <p>Depending on your jurisdiction, you possess the following rights regarding your personal information:</p>
+  <ul>
+    <li><strong>Right of Access &amp; Portability</strong>: When Google Drive Cloud Sync is enabled, a complete snapshot of your habit, deed, and reflection data is stored in standard JSON format in your personal Google Drive private app storage (<code>Ihsan_Cloud_Backup.json</code>).</li>
+    <li><strong>Right to Erasure (&ldquo;Right to be Forgotten&rdquo;)</strong>: You can permanently delete all on-device records, habits, streaks, reflections, and configurations at any time by clearing the application storage/cache in your Android system settings or by uninstalling the application.</li>
+    <li><strong>Right to Cloud Backup Deletion</strong>: You can permanently delete your cloud backup file at any time directly through the app via <strong>Settings &gt; Google Account &amp; Cloud &gt; Delete Account</strong>, or by managing connected apps within your Google Drive account.</li>
+    <li><strong>Right to Revoke Consent</strong>: You can disconnect your Google account, disable notifications, or revoke permissions in your Android system settings at any time.</li>
+    <li><strong>Non-Discrimination</strong>: We will never discriminate against you, restrict core offline habit tracking features, or alter quality of service for exercising your privacy rights.</li>
+  </ul>
+
+  <hr>
+
+  <h2>7. Account and Data Deletion Protocol (Google Play Compliance)</h2>
+  <p>Because Ihsan is built on a decentralized, local-first architecture without proprietary data-collection servers:</p>
+  <ol>
+    <li><strong>Local Data Erasure (User-Controlled)</strong>: You can permanently erase all on-device records, logs, and reflections at any time by clearing application data in your device's application manager or by uninstalling the application.</li>
+    <li><strong>Google Drive Cloud Backup Erasure (User-Controlled)</strong>: Because cloud backups reside in your personal Google Drive account and the developers maintain zero server access or administrative keys to your storage, backup deletion is directly managed by you:
+      <ul>
+        <li><strong>In-App</strong>: Select <strong>Settings &gt; Google Account &amp; Cloud &gt; Delete Account</strong>.</li>
+        <li><strong>Via Google Drive Web</strong>: Go to <strong>drive.google.com &gt; Settings (gear icon) &gt; Manage Apps &gt; Ihsan &gt; Options &gt; Delete hidden app data</strong>.</li>
+      </ul>
+    </li>
+    <li><strong>Google Account Disconnection</strong>: Disconnecting your Google Account instantly wipes cached authentication tokens from your local device.</li>
+    <li><strong>Third-Party &amp; Support Deletion Requests by Email</strong>: If you wish to delete your anonymous customer record from our subscription infrastructure (RevenueCat) or request the erasure of any customer support correspondence, you can email us at <a href="mailto:musaverseapps@gmail.com"><strong>musaverseapps@gmail.com</strong></a> with the subject line <em>&ldquo;Data Deletion Request&rdquo;</em>. All such requests are verified and processed within thirty (30) days at no charge.</li>
+  </ol>
+
+  <hr>
+
+  <h2>8. Children's Privacy (COPPA &amp; Global Standards)</h2>
+  <p>Ihsan does not knowingly collect or solicit personal information from children under the age of 13 (or under 16 in certain European jurisdictions). Because the core application functions entirely offline without requiring registration, children may safely utilize the daily habit and prayer tracking features on device. If we learn that personal data of a minor has been collected without verified parental consent, we will promptly delete such information.</p>
+
+  <hr>
+
+  <h2>9. Security Measures</h2>
+  <p>We maintain rigorous technical and organizational security measures to protect your data:</p>
+  <ul>
+    <li>Application sandboxing on Android prevents unauthorized applications from accessing the local SQLite database.</li>
+    <li>Industry-standard Transport Layer Security (TLS 1.2/1.3 / HTTPS) encrypts all data transmitted between your device and Google/RevenueCat APIs.</li>
+    <li>Restricted OAuth 2.0 scoping ensures that Google Drive access is confined strictly to the sandboxed <code>appdata</code> directory.</li>
+  </ul>
+
+  <hr>
+
+  <h2>10. California Privacy Disclosures (CCPA / CPRA)</h2>
+  <p>Under the California Consumer Privacy Act (CCPA) as amended by the California Privacy Rights Act (CPRA):</p>
+  <ul>
+    <li>We do <strong>not</strong> sell your personal information.</li>
+    <li>We do <strong>not</strong> share your personal information for cross-context behavioral advertising.</li>
+    <li>We do <strong>not</strong> use or disclose sensitive personal information for purposes other than those specified in Section 2.</li>
+    <li>California residents may exercise their rights to know, delete, correct, or opt out by emailing <a href="mailto:musaverseapps@gmail.com"><strong>musaverseapps@gmail.com</strong></a>.</li>
+  </ul>
+
+  <hr>
+
+  <h2>11. Changes to This Privacy Policy</h2>
+  <p>We may update this Privacy Policy from time to time to reflect modifications in our features, platform integrations, or relevant legal obligations. When changes are made, the <em>&ldquo;Last Updated&rdquo;</em> date at the top of this policy will be revised. Significant changes will be accompanied by an in-app notice where feasible.</p>
+
+  <hr>
+
+  <h2>12. Contact Information and Data Protection Inquiries</h2>
+  <p>If you have questions, feedback, or concerns regarding this Privacy Policy or our privacy practices, please contact us:</p>
+  <ul>
+    <li><strong>Publisher / Developer</strong>: 鬼 musa</li>
+    <li><strong>Direct Privacy Email</strong>: <a href="mailto:musaverseapps@gmail.com">musaverseapps@gmail.com</a></li>
+    <li><strong>Support &amp; In-App Contact</strong>: Available through the App Settings menu</li>
+  </ul>
 </body>
 </html>
